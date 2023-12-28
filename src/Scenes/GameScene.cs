@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using DotFeather;
 using Sukiteto;
 
@@ -111,6 +112,8 @@ public class GameScene : Scene
     /// </summary>
     private bool canHold = true;
 
+    private bool isGameOver;
+
     private readonly VectorInt holdPosition = (9, 5);
     private readonly VectorInt nextPosition = (27, 5);
 
@@ -153,7 +156,17 @@ public class GameScene : Scene
     public override void OnUpdate()
     {
         DF.Console.Cls();
-        DF.Console.Print(Math.Floor(DFKeyboard.Down.ElapsedTime * 5));
+        DF.Console.Print($"FPS: {Time.Fps}");
+
+        if (isGameOver)
+        {
+            if (DFKeyboard.Z.IsKeyUp)
+            {
+                DF.Router.ChangeScene<TitleScene>();
+            }
+
+            return;
+        }
 
         ProcessFreefall();
         ProcessInput();
@@ -336,6 +349,15 @@ public class GameScene : Scene
         ProcessLineClear();
         SpawnMino();
     }
+    
+    private void ProcessGameOver()
+    {
+        Audio.Stop();
+        isGameOver = true;
+        var gameoverText = new TextElement("GAME OVER", 32, DFFontStyle.Normal, Color.Red);
+        gameoverText.Location = (320 / 2 - gameoverText.Width / 2, 240 / 2 - gameoverText.Height / 2);
+        Root.Add(gameoverText);
+    }
 
     private void RotateLeft()
     {
@@ -468,5 +490,9 @@ public class GameScene : Scene
         RenderHoldNext();
         minoPosition = (width / 2 - 2, heightOffset - 2);
         minoRotation = 0;
+        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
+        {
+            ProcessGameOver();
+        }
     }
 }
