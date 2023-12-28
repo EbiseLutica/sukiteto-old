@@ -79,7 +79,7 @@ public class GameScene : Scene
     /// <summary>
     /// フィールドが更新されたかどうか
     /// </summary>
-    private bool isFieldUpdated = false;
+    private bool isFieldUpdated;
 
     /// <summary>
     /// ミノの速度
@@ -304,6 +304,8 @@ public class GameScene : Scene
         {
             field[i, 0] = MinoType.None;
         }
+
+        isFieldUpdated = true;
     }
 
     private float RayToDown()
