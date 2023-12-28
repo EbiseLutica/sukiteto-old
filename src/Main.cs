@@ -11,4 +11,4 @@ DF.Window.Start += () =>
     Global.Initialize();
 };
 
-return DF.Run<GameScene>();
+return DF.Run<TitleScene>();
