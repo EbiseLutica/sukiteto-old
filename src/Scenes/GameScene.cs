@@ -176,15 +176,15 @@ public class GameScene : Scene
         if (DFKeyboard.Down.IsPressed) return;
         if (fixTimer > 0) return;
 
-        freefallDistance += fallSpeed * Time.DeltaTime;
+        freefallDistance += MathF.Min(fallSpeed * Time.DeltaTime, 20);
         if (freefallDistance < 1) return;
 
         var distanceInt = (int)MathF.Floor(freefallDistance);
-        minoPosition += VectorInt.Down * distanceInt;
+        minoPosition.Y += distanceInt;
         freefallDistance -= distanceInt;
         
         // 床判定
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
+        while (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
         {
             minoPosition.Y--;
         }
