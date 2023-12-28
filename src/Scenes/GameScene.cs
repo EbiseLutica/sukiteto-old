@@ -203,7 +203,7 @@ public class GameScene : Scene
         if (DFKeyboard.Down.IsPressed && CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
         {
             softDropTimer += Time.DeltaTime;
-            if (softDropTimer > 0.05f)
+            if (softDropTimer > 0.01f)
             {
                 minoPosition.Y++;
                 softDropTimer = 0;
