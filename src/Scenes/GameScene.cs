@@ -208,10 +208,12 @@ public class GameScene : Scene
         if (DFKeyboard.Left.IsKeyDown && CanPlaceMino(minoPosition.X - 1, minoPosition.Y, MinoMatrix))
         {
             minoPosition.X--;
+            Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         if (DFKeyboard.Right.IsKeyDown && CanPlaceMino(minoPosition.X + 1, minoPosition.Y, MinoMatrix))
         {
             minoPosition.X++;
+            Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         if (DFKeyboard.Down.IsPressed && CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
         {
@@ -219,6 +221,7 @@ public class GameScene : Scene
             if (softDropTimer > 0.01f)
             {
                 minoPosition.Y++;
+                Audio.PlayOneShotAsync(Resources.SfxMove);
                 softDropTimer = 0;
             }
         }
@@ -233,6 +236,7 @@ public class GameScene : Scene
             {
                 minoPosition.Y++;
             }
+            Audio.PlayOneShotAsync(Resources.SfxHardDrop);
 
             fixTimer = graceTimeForFix;
         }
@@ -241,12 +245,14 @@ public class GameScene : Scene
         if (DFKeyboard.Z.IsKeyDown)
         {
             RotateLeft();
+            Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // 右回転
         if (DFKeyboard.X.IsKeyDown)
         {
             RotateRight();
+            Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // リロード
@@ -259,6 +265,7 @@ public class GameScene : Scene
         if (DFKeyboard.C.IsKeyDown && canHold)
         {
             ProcessHold();
+            Audio.PlayOneShotAsync(Resources.SfxHold);
         }
     }
 
@@ -296,7 +303,10 @@ public class GameScene : Scene
             y++;
         }
         
+        if (cleared <= 0) return;
+
         // TODO: ラインクリアの音とかスコアとか
+        Audio.PlayOneShotAsync(Resources.SfxLineClear);
     }
 
     /// <summary>
@@ -356,6 +366,7 @@ public class GameScene : Scene
         isGameOver = true;
         var gameoverText = new TextElement("GAME OVER", 32, DFFontStyle.Normal, Color.Red);
         gameoverText.Location = (320 / 2 - gameoverText.Width / 2, 240 / 2 - gameoverText.Height / 2);
+        Audio.Play(Resources.SfxGameOver);
         Root.Add(gameoverText);
     }
 

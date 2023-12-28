@@ -6,9 +6,15 @@ public class ResourceLoader
 {
     public Dictionary<MinoType, Texture2D> Mino { get; }
     
-    public Texture2D Wall { get; }
+    public Texture2D Wall { get; } = Texture2D.LoadFrom("./assets/textures/wall.png");
 
-    public IAudioSource BgmTypeA { get; }
+    public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
+    
+    public IAudioSource SfxMove { get; } = new WaveAudioSource("./assets/sounds/move.wav");
+    public IAudioSource SfxHold { get; } = new WaveAudioSource("./assets/sounds/hold.wav");
+    public IAudioSource SfxLineClear { get; } = new WaveAudioSource("./assets/sounds/lineclear.wav");
+    public IAudioSource SfxHardDrop { get; } = new WaveAudioSource("./assets/sounds/hard_drop.wav");
+    public IAudioSource SfxGameOver { get; } = new WaveAudioSource("./assets/sounds/gameover.wav");
 
     public ResourceLoader()
     {
@@ -24,8 +30,5 @@ public class ResourceLoader
             [MinoType.I] = minos[6],
             [MinoType.Ghost] = minos[7]
         };
-        Wall = Texture2D.LoadFrom("./assets/textures/wall.png");
-
-        BgmTypeA = new VorbisAudioSource("./assets/sounds/type_a.ogg");
     }
 }
