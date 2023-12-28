@@ -103,9 +103,19 @@ public class GameScene : Scene
     private float fixTimer;
 
     /// <summary>
-    /// ソフトドロップタイマー
+    /// 長押ししてからミノが動き始めるまでの時間
     /// </summary>
-    private float softDropTimer;
+    private float das = 1f / 60 * 10;
+    
+    /// <summary>
+    /// 長押し中のミノの移動速度
+    /// </summary>
+    private float arr = 1f / 60 * 2;
+
+    /// <summary>
+    /// DAS用のタイマー
+    /// </summary>
+    private float dasTimer;
 
     /// <summary>
     /// ホールドできるかどうか
@@ -113,6 +123,11 @@ public class GameScene : Scene
     private bool canHold = true;
 
     private bool isGameOver;
+    
+    // DAS 考慮用
+    private bool isLeftPressed;
+    private bool isRightPressed;
+    private bool isDownPressed;
 
     private readonly VectorInt holdPosition = (9, 5);
     private readonly VectorInt nextPosition = (27, 5);
@@ -156,7 +171,7 @@ public class GameScene : Scene
     public override void OnUpdate()
     {
         DF.Console.Cls();
-        DF.Console.Print($"FPS: {Time.Fps}");
+        DF.Console.Print($"{Time.Fps}fps\nDAS:{dasTimer:0.000}\nFFD:{freefallDistance:0.000}\nFT:{fixTimer:0.000}\n");
 
         if (isGameOver)
         {
@@ -169,6 +184,7 @@ public class GameScene : Scene
         }
 
         ProcessFreefall();
+        ProcessDas();
         ProcessInput();
         ProcessFix();
         
@@ -203,31 +219,63 @@ public class GameScene : Scene
         }
     }
 
+    private void ProcessDas()
+    {
+        isLeftPressed = isRightPressed = isDownPressed = false;
+        if (DFKeyboard.Left.IsKeyDown) isLeftPressed = true;
+        if (DFKeyboard.Right.IsKeyDown) isRightPressed = true;
+
+        if (DFKeyboard.Left.ElapsedTime >= das)
+        {
+            dasTimer += Time.DeltaTime;
+            if (dasTimer > arr)
+            {
+                isLeftPressed = true;
+                dasTimer = 0;
+            }
+        }
+        else if (DFKeyboard.Right.ElapsedTime >= das)
+        {
+            dasTimer += Time.DeltaTime;
+            if (dasTimer > arr)
+            {
+                isRightPressed = true;
+                dasTimer = 0;
+            }
+        }
+
+        if (DFKeyboard.Down)
+        {
+            dasTimer += Time.DeltaTime;
+            if (dasTimer > arr)
+            {
+                isDownPressed = true;
+                dasTimer = 0;
+            }
+        }
+        
+        if (!DFKeyboard.Left && !DFKeyboard.Right && !DFKeyboard.Down)
+        {
+            dasTimer = 0;
+        }
+    }
+
     private void ProcessInput()
     {
-        if (DFKeyboard.Left.IsKeyDown && CanPlaceMino(minoPosition.X - 1, minoPosition.Y, MinoMatrix))
+        if (isLeftPressed && CanPlaceMino(minoPosition.X - 1, minoPosition.Y, MinoMatrix))
         {
             minoPosition.X--;
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        if (DFKeyboard.Right.IsKeyDown && CanPlaceMino(minoPosition.X + 1, minoPosition.Y, MinoMatrix))
+        if (isRightPressed && CanPlaceMino(minoPosition.X + 1, minoPosition.Y, MinoMatrix))
         {
             minoPosition.X++;
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        if (DFKeyboard.Down.IsPressed && CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
+        if (isDownPressed && CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
         {
-            softDropTimer += Time.DeltaTime;
-            if (softDropTimer > 0.01f)
-            {
-                minoPosition.Y++;
-                Audio.PlayOneShotAsync(Resources.SfxMove);
-                softDropTimer = 0;
-            }
-        }
-        else
-        {
-            softDropTimer = 0;
+            minoPosition.Y++;
+            Audio.PlayOneShotAsync(Resources.SfxMove);
         }
 
         if (DFKeyboard.Up.IsKeyDown)
