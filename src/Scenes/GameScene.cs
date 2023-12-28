@@ -264,6 +264,48 @@ public class GameScene : Scene
         minoRotation = 0;
     }
 
+    private void ProcessLineClear()
+    {
+        var cleared = 0;
+        for (var y = height + heightOffset - 1; y >= 0; y--)
+        {
+            var isLineFilled = true;
+            for (var x = 0; x < width; x++)
+            {
+                if (field[x, y] != MinoType.None) continue;
+                isLineFilled = false;
+                break;
+            }
+
+            if (!isLineFilled) continue;
+            cleared++;
+            ShiftDownField(y);
+            y++;
+        }
+        
+        // TODO: ラインクリアの音とかスコアとか
+    }
+
+    /// <summary>
+    /// フィールドの y 行を消して、それより上の行を下に1ずつずらします。
+    /// </summary>
+    /// <param name="y"></param>
+    private void ShiftDownField(int y)
+    {   
+        for (var i = y; i >= 0; i--)
+        {
+            for (var j = 0; j < width; j++)
+            {
+                field[j, i] = i > 0 ? field[j, i - 1] : MinoType.None;
+            }
+        }
+        
+        for (var i = 0; i < width; i++)
+        {
+            field[i, 0] = MinoType.None;
+        }
+    }
+
     private float RayToDown()
     {
         var y = minoPosition.Y;
@@ -285,6 +327,7 @@ public class GameScene : Scene
         if (fixTimer < graceTimeForFix) return;
         fixTimer = 0;
         PlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix, currentMino);
+        ProcessLineClear();
         SpawnMino();
     }
 
