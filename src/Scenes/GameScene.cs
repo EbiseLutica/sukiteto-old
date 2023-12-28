@@ -323,6 +323,10 @@ public class GameScene : Scene
         {
             fixTimer += Time.DeltaTime;
         }
+        else
+        {
+            fixTimer = 0;
+        }
         
         if (fixTimer < graceTimeForFix) return;
         fixTimer = 0;
