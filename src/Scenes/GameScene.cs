@@ -106,6 +106,11 @@ public class GameScene : Scene
     /// </summary>
     private float softDropTimer;
 
+    /// <summary>
+    /// ホールドできるかどうか
+    /// </summary>
+    private bool canHold = true;
+
     private readonly VectorInt holdPosition = (9, 5);
     private readonly VectorInt nextPosition = (27, 5);
 
@@ -147,8 +152,6 @@ public class GameScene : Scene
 
     public override void OnUpdate()
     {
-        var previousPosition = minoPosition;
-        var previousMatrix = MinoMatrix;
         DF.Console.Cls();
         DF.Console.Print(Math.Floor(DFKeyboard.Down.ElapsedTime * 5));
 
@@ -238,6 +241,27 @@ public class GameScene : Scene
         {
             DF.Router.ChangeScene<GameScene>();
         }
+        
+        // ホールド
+        if (DFKeyboard.C.IsKeyDown && canHold)
+        {
+            ProcessHold();
+        }
+    }
+
+    private void ProcessHold()
+    {
+        if (currentHold == MinoType.None)
+        {
+            currentHold = currentMino;
+            SpawnMino();
+            return;
+        }
+        (currentHold, currentMino) = (currentMino, currentHold);
+        canHold = false;
+        RenderHoldNext();
+        minoPosition = (width / 2 - 2, heightOffset - 2);
+        minoRotation = 0;
     }
 
     private float RayToDown()
@@ -372,7 +396,7 @@ public class GameScene : Scene
         uiTileMap.Clear();
         if (currentHold != MinoType.None)
         {
-            RenderMinoToTilemap(holdPosition.X, holdPosition.Y, MinoMatrix, currentHold, uiTileMap);
+            RenderMinoToTilemap(holdPosition.X, holdPosition.Y, Minos[currentHold][0], canHold ? currentHold : MinoType.Ghost, uiTileMap);
         }
 
         var i = 0;
@@ -391,6 +415,7 @@ public class GameScene : Scene
             EnqueueNexts();
         }
 
+        canHold = true;
         RenderHoldNext();
         minoPosition = (width / 2 - 2, heightOffset - 2);
         minoRotation = 0;
