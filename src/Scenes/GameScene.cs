@@ -157,6 +157,8 @@ public class GameScene : Scene
         ProcessFix();
         
         currentMinoTileMap.Clear();
+        var ghostY = RayToDown();
+        RenderMinoToTilemap(minoPosition.X, (int)ghostY - heightOffset, MinoMatrix, MinoType.Ghost, currentMinoTileMap);
         RenderMinoToTilemap(minoPosition.X, minoPosition.Y - heightOffset, MinoMatrix, currentMino, currentMinoTileMap);
 
         if (isFieldUpdated)
@@ -236,6 +238,17 @@ public class GameScene : Scene
         {
             DF.Router.ChangeScene<GameScene>();
         }
+    }
+
+    private float RayToDown()
+    {
+        var y = minoPosition.Y;
+        while (CanPlaceMino(minoPosition.X, y + 1, MinoMatrix))
+        {
+            y++;
+        }
+
+        return y;
     }
 
     private void ProcessFix()
@@ -380,5 +393,6 @@ public class GameScene : Scene
 
         RenderHoldNext();
         minoPosition = (width / 2 - 2, heightOffset - 2);
+        minoRotation = 0;
     }
 }
