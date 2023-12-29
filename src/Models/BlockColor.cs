@@ -1,6 +1,6 @@
 ﻿namespace Sukiteto;
 
-public enum MinoType
+public enum BlockColor
 {
     None,
     T,

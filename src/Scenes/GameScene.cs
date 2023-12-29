@@ -8,7 +8,7 @@ namespace SukiTeto;
 
 public class GameScene : Scene
 {
-    private bool[,] MinoMatrix => Minos[currentMino][minoRotation];
+    private bool[,] CurrentShape => Shapes[currentColor][blockRotation];
     
     /// <summary>
     /// フィールドの表示に使うタイルマップ
@@ -16,9 +16,9 @@ public class GameScene : Scene
     private Tilemap fieldTileMap;
 
     /// <summary>
-    /// 現在のミノの表示に使うタイルマップ
+    /// 現在のブロックの表示に使うタイルマップ
     /// </summary>
-    private Tilemap currentMinoTileMap;
+    private Tilemap currentBlockTileMap;
 
     /// <summary>
     /// NEXT, HOLD などの表示に使うタイルマップ
@@ -26,9 +26,9 @@ public class GameScene : Scene
     private Tilemap uiTileMap;
 
     /// <summary>
-    /// ミノテクスチャのタイルデータ
+    /// ブロックテクスチャのタイルデータ
     /// </summary>
-    private Dictionary<MinoType, ITile> minoTiles;
+    private Dictionary<BlockColor, ITile> blockTiles;
     
     /// <summary>
     /// 壁のタイルデータ
@@ -38,7 +38,7 @@ public class GameScene : Scene
     /// <summary>
     /// フィールド
     /// </summary>
-    private MinoType[,] field;
+    private BlockColor[,] field;
 
     /// <summary>
     /// フィールドの幅
@@ -51,30 +51,30 @@ public class GameScene : Scene
     private int height = 20;
 
     // 窒息高度より上にどれくらい積めるか
-    // これを超えようとするか、窒息高度付近でミノを召喚できなくなったらゲームオーバーとなる
+    // これを超えようとするか、窒息高度付近でブロックを召喚できなくなったらゲームオーバーとなる
     private int heightOffset = 6;
     
     /// <summary>
-    /// 現在ホールドしているミノ
+    /// 現在ホールドしているブロック
     /// </summary>
-    private MinoType currentHold = MinoType.None;
+    private BlockColor currentHold = BlockColor.None;
     
     /// <summary>
-    /// 次に出てくるミノのキュー
+    /// 次に出てくるブロックのキュー
     /// </summary>
-    private Queue<MinoType> nextQueue = new Queue<MinoType>();
+    private Queue<BlockColor> nextQueue = new Queue<BlockColor>();
 
-    private MinoType currentMino = MinoType.None;
-
-    /// <summary>
-    /// ミノの現在位置
-    /// </summary>
-    private VectorInt minoPosition = (0, 0);
+    private BlockColor currentColor = BlockColor.None;
 
     /// <summary>
-    /// ミノの現在の回転値
+    /// ブロックの現在位置
     /// </summary>
-    private int minoRotation = 0;
+    private VectorInt blockPosition = (0, 0);
+
+    /// <summary>
+    /// ブロックの現在の回転値
+    /// </summary>
+    private int blockRotation = 0;
 
     /// <summary>
     /// フィールドが更新されたかどうか
@@ -82,7 +82,7 @@ public class GameScene : Scene
     private bool isFieldUpdated;
 
     /// <summary>
-    /// ミノの速度
+    /// ブロックの速度
     /// </summary>
     private float fallSpeed = 2;
     
@@ -102,12 +102,12 @@ public class GameScene : Scene
     private float fixTimer;
 
     /// <summary>
-    /// 長押ししてからミノが動き始めるまでの時間
+    /// 長押ししてからブロックが動き始めるまでの時間
     /// </summary>
     private float das = 1f / 60 * 10;
     
     /// <summary>
-    /// 長押し中のミノの移動速度
+    /// 長押し中のブロックの移動速度
     /// </summary>
     private float arr = 1f / 60 * 2;
 
@@ -136,15 +136,15 @@ public class GameScene : Scene
     private readonly VectorInt holdPosition = (9, 5);
     private readonly VectorInt nextPosition = (27, 5);
 
-    private readonly MinoType[] allMinos =
+    private readonly BlockColor[] allBlocks =
     {
-        MinoType.I,
-        MinoType.J,
-        MinoType.L,
-        MinoType.O,
-        MinoType.S,
-        MinoType.T,
-        MinoType.Z
+        BlockColor.I,
+        BlockColor.J,
+        BlockColor.L,
+        BlockColor.O,
+        BlockColor.S,
+        BlockColor.T,
+        BlockColor.Z
     };
 
     /// <summary>
@@ -163,7 +163,7 @@ public class GameScene : Scene
     };
 
     /// <summary>
-    /// キックテーブル（Iミノ用）
+    /// キックテーブル（Iブロック用）
     /// </summary>
     private readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTableI = new()
     {
@@ -182,24 +182,24 @@ public class GameScene : Scene
     /// </summary>
     private readonly float fixResetMax = 8;
     
-    private readonly Random random = new Random();
+    private readonly Random random = new();
 
     public override void OnStart(Dictionary<string, object> args)
     {
         fieldTileMap = new Tilemap((8, 8));
-        currentMinoTileMap = new Tilemap((8, 8));
+        currentBlockTileMap = new Tilemap((8, 8));
         uiTileMap = new Tilemap((8, 8));
-        Root.AddRange(fieldTileMap, currentMinoTileMap, uiTileMap);
-        minoTiles = new Dictionary<MinoType, ITile>();
-        field = new MinoType[width, height + heightOffset];
+        Root.AddRange(fieldTileMap, currentBlockTileMap, uiTileMap);
+        blockTiles = new Dictionary<BlockColor, ITile>();
+        field = new BlockColor[width, height + heightOffset];
         
         InitializeTiles();
         RenderWalls();
         EnqueueNexts();
         RenderHoldNext();
-        SpawnMino();
+        SpawnNextBlock();
 
-        currentMinoTileMap.Location = fieldTileMap.Location = (
+        currentBlockTileMap.Location = fieldTileMap.Location = (
             320 / 2 - width * 8 / 2,
             240 / 2 - height * 8 / 2
             );
@@ -227,10 +227,10 @@ public class GameScene : Scene
         ProcessInput();
         ProcessFix();
         
-        currentMinoTileMap.Clear();
+        currentBlockTileMap.Clear();
         var ghostY = RayToDown();
-        RenderMinoToTilemap(minoPosition.X, (int)ghostY - heightOffset, MinoMatrix, MinoType.Ghost, currentMinoTileMap);
-        RenderMinoToTilemap(minoPosition.X, minoPosition.Y - heightOffset, MinoMatrix, currentMino, currentMinoTileMap);
+        RenderBlockToTilemap(blockPosition.X, (int)ghostY - heightOffset, CurrentShape, BlockColor.Ghost, currentBlockTileMap);
+        RenderBlockToTilemap(blockPosition.X, blockPosition.Y - heightOffset, CurrentShape, currentColor, currentBlockTileMap);
 
         if (isFieldUpdated)
         {
@@ -251,13 +251,13 @@ public class GameScene : Scene
         if (freefallDistance < 1) return;
 
         var distanceInt = (int)MathF.Floor(freefallDistance);
-        minoPosition.Y += distanceInt;
+        blockPosition.Y += distanceInt;
         freefallDistance -= distanceInt;
         
         // 床判定
-        while (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
+        while (!CanPlaceBlock(blockPosition.X, blockPosition.Y, CurrentShape))
         {
-            minoPosition.Y--;
+            blockPosition.Y--;
         }
     }
 
@@ -310,27 +310,27 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessInput()
     {
-        if (isLeftPressed && CanPlaceMino(minoPosition.X - 1, minoPosition.Y, MinoMatrix))
+        if (isLeftPressed && CanPlaceBlock(blockPosition.X - 1, blockPosition.Y, CurrentShape))
         {
-            minoPosition.X--;
+            blockPosition.X--;
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        if (isRightPressed && CanPlaceMino(minoPosition.X + 1, minoPosition.Y, MinoMatrix))
+        if (isRightPressed && CanPlaceBlock(blockPosition.X + 1, blockPosition.Y, CurrentShape))
         {
-            minoPosition.X++;
+            blockPosition.X++;
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        if (isDownPressed && CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
+        if (isDownPressed && CanPlaceBlock(blockPosition.X, blockPosition.Y + 1, CurrentShape))
         {
-            minoPosition.Y++;
+            blockPosition.Y++;
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
 
         if (DFKeyboard.Up.IsKeyDown)
         {
-            while (CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
+            while (CanPlaceBlock(blockPosition.X, blockPosition.Y + 1, CurrentShape))
             {
-                minoPosition.Y++;
+                blockPosition.Y++;
             }
             Audio.PlayOneShotAsync(Resources.SfxHardDrop);
 
@@ -370,12 +370,12 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessRotateLeft()
     {
-        var nextRotation = minoRotation - 1;
+        var nextRotation = blockRotation - 1;
         if (nextRotation < 0) nextRotation = 3;
         var kickValue = TryKick(nextRotation);
         if (!kickValue.HasValue) return;
-        minoPosition += kickValue.Value;
-        minoRotation = nextRotation;
+        blockPosition += kickValue.Value;
+        blockRotation = nextRotation;
         ResetFix();
     }
     
@@ -384,12 +384,12 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessRotateRight()
     {
-        var nextRotation = minoRotation + 1;
+        var nextRotation = blockRotation + 1;
         if (nextRotation > 3) nextRotation = 0;
         var kickValue = TryKick(nextRotation);
         if (!kickValue.HasValue) return;
-        minoPosition += kickValue.Value;
-        minoRotation = nextRotation;
+        blockPosition += kickValue.Value;
+        blockRotation = nextRotation;
         ResetFix();
     }
 
@@ -398,25 +398,25 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessHold()
     {
-        if (currentHold == MinoType.None)
+        if (currentHold == BlockColor.None)
         {
-            currentHold = currentMino;
-            SpawnMino();
+            currentHold = currentColor;
+            SpawnNextBlock();
             canHold = false;
             return;
         }
-        (currentHold, currentMino) = (currentMino, currentHold);
+        (currentHold, currentColor) = (currentColor, currentHold);
         canHold = false;
         RenderHoldNext();
         ResetStateForSpawning();
     }
 
     /// <summary>
-    /// ミノが床に固定するまでの猶予時間の処理
+    /// ブロックが床に固定するまでの猶予時間の処理
     /// </summary>
     private void ProcessFix()
     {
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
+        if (!CanPlaceBlock(blockPosition.X, blockPosition.Y + 1, CurrentShape))
         {
             fixTimer += Time.DeltaTime;
         }
@@ -426,9 +426,9 @@ public class GameScene : Scene
         }
         
         if (fixTimer < graceTimeForFix) return;
-        PlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix, currentMino);
+        PlaceBlock(blockPosition.X, blockPosition.Y, CurrentShape, currentColor);
         ProcessLineClear();
-        SpawnMino();
+        SpawnNextBlock();
     }
 
     /// <summary>
@@ -442,7 +442,7 @@ public class GameScene : Scene
             var isLineFilled = true;
             for (var x = 0; x < width; x++)
             {
-                if (field[x, y] != MinoType.None) continue;
+                if (field[x, y] != BlockColor.None) continue;
                 isLineFilled = false;
                 break;
             }
@@ -473,11 +473,11 @@ public class GameScene : Scene
     }
 
     /// <summary>
-    /// ネクストのミノを召喚し、必要ならネクストを追加します。
+    /// ネクストのブロックを召喚し、必要ならネクストを追加します。
     /// </summary>
-    private void SpawnMino()
+    private void SpawnNextBlock()
     {
-        currentMino = nextQueue.Dequeue();
+        currentColor = nextQueue.Dequeue();
         // NEXTが減ってきたら補充する
         if (nextQueue.Count < 7)
         {
@@ -488,7 +488,7 @@ public class GameScene : Scene
         ResetStateForSpawning();
         canHold = true;
 
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
+        if (!CanPlaceBlock(blockPosition.X, blockPosition.Y, CurrentShape))
         {
             ProcessGameOver();
         }
@@ -504,25 +504,25 @@ public class GameScene : Scene
         {
             for (var j = 0; j < width; j++)
             {
-                field[j, i] = i > 0 ? field[j, i - 1] : MinoType.None;
+                field[j, i] = i > 0 ? field[j, i - 1] : BlockColor.None;
             }
         }
         
         for (var i = 0; i < width; i++)
         {
-            field[i, 0] = MinoType.None;
+            field[i, 0] = BlockColor.None;
         }
 
         isFieldUpdated = true;
     }
 
     /// <summary>
-    /// 現在のミノがそのまま降下したときに到達するY座標を算出します。
+    /// 現在のブロックがそのまま降下したときに到達するY座標を算出します。
     /// </summary>
     private float RayToDown()
     {
-        var y = minoPosition.Y;
-        while (CanPlaceMino(minoPosition.X, y + 1, MinoMatrix))
+        var y = blockPosition.Y;
+        while (CanPlaceBlock(blockPosition.X, y + 1, CurrentShape))
         {
             y++;
         }
@@ -542,17 +542,17 @@ public class GameScene : Scene
     }
 
     /// <summary>
-    /// キックテーブルを元にミノのキックを試みます。
+    /// キックテーブルを元にブロックのキックを試みます。
     /// </summary>
     /// <param name="nextRotation">試行する回転</param>
     /// <returns>キックが成功した場合はその相対座標、失敗した場合は<c>null</c>。</returns>
     private VectorInt? TryKick(int nextRotation)
     {
-        var table = currentMino == MinoType.I ? kickTableI : kickTable;
-        var testCases = table[(minoRotation, nextRotation)];
+        var table = currentColor == BlockColor.I ? kickTableI : kickTable;
+        var testCases = table[(blockRotation, nextRotation)];
         foreach (var testCase in testCases)
         {
-            if (CanPlaceMino(minoPosition.X + testCase.X, minoPosition.Y + testCase.Y, Minos[currentMino][nextRotation]))
+            if (CanPlaceBlock(blockPosition.X + testCase.X, blockPosition.Y + testCase.Y, Shapes[currentColor][nextRotation]))
             {
                 return testCase;
             }
@@ -562,20 +562,20 @@ public class GameScene : Scene
     }
 
     /// <summary>
-    /// ミノを指定した位置に配置します。
+    /// ブロックを指定した位置に配置します。
     /// </summary>
     /// <param name="x">フィールドのX</param>
     /// <param name="y">フィールドのY</param>
-    /// <param name="mino">ミノ マトリックス</param>
-    /// <param name="minoType">ミノの色</param>
-    private void PlaceMino(int x, int y, bool[,] mino, MinoType minoType)
+    /// <param name="blockShape">ブロック形状</param>
+    /// <param name="blockColor">ブロックの色</param>
+    private void PlaceBlock(int x, int y, bool[,] blockShape, BlockColor blockColor)
     {
-        for (var i = 0; i < mino.GetLength(0); i++)
+        for (var i = 0; i < blockShape.GetLength(0); i++)
         {
-            for (var j = 0; j < mino.GetLength(1); j++)
+            for (var j = 0; j < blockShape.GetLength(1); j++)
             {
-                if (!mino[i, j]) continue;
-                field[x + i, y + j] = minoType;
+                if (!blockShape[i, j]) continue;
+                field[x + i, y + j] = blockColor;
             }
         }
 
@@ -583,21 +583,21 @@ public class GameScene : Scene
     }
     
     /// <summary>
-    /// ミノをその位置に配置できるかどうかを算出します。
+    /// ブロックをその位置に配置できるかどうかを算出します。
     /// </summary>
     /// <param name="x">フィールド X</param>
     /// <param name="y">フィールド Y</param>
-    /// <param name="mino">ミノ マトリックス</param>
+    /// <param name="blockShape">ブロック形状</param>
     /// <returns>配置できる（衝突しない）場合は<c>true</c>を、衝突してしまう場合は<c>false</c>を返します。</returns>
-    private bool CanPlaceMino(int x, int y, bool[,] mino)
+    private bool CanPlaceBlock(int x, int y, bool[,] blockShape)
     {
-        for (var i = 0; i < mino.GetLength(0); i++)
+        for (var i = 0; i < blockShape.GetLength(0); i++)
         {
-            for (var j = 0; j < mino.GetLength(1); j++)
+            for (var j = 0; j < blockShape.GetLength(1); j++)
             {
-                if (!mino[i, j]) continue;
+                if (!blockShape[i, j]) continue;
                 if (x + i < 0 || x + i >= width || y + j < 0 || y + j >= height + heightOffset) return false;
-                if (field[x + i, y + j] != MinoType.None) return false;
+                if (field[x + i, y + j] != BlockColor.None) return false;
             }
         }
 
@@ -605,25 +605,25 @@ public class GameScene : Scene
     }
 
     /// <summary>
-    /// ネクストに新たなミノを挿入します。
+    /// ネクストに新たなブロックを挿入します。
     /// </summary>
     private void EnqueueNexts()
     {
-        foreach (var type in allMinos.OrderBy(_ => random.Next()))
+        foreach (var type in allBlocks.OrderBy(_ => random.Next()))
         {
             nextQueue.Enqueue(type);
         }
     }
 
     /// <summary>
-    /// ミノのスポーンおよびホールドから引っ張ってきたときに行うリセット処理
+    /// ブロックのスポーンおよびホールドから引っ張ってきたときに行うリセット処理
     /// </summary>
     private void ResetStateForSpawning()
     {
         fixResetCounter = 0;
         fixTimer = 0;
-        minoPosition = (width / 2 - 2, heightOffset - 2);
-        minoRotation = 0;
+        blockPosition = (width / 2 - 2, heightOffset - 2);
+        blockRotation = 0;
     }
 
     /// <summary>
@@ -635,27 +635,27 @@ public class GameScene : Scene
         {
             for (var y = 0; y < height + heightOffset; y++)
             {
-                fieldTileMap[x, y - heightOffset] = field[x, y] == MinoType.None ? null : minoTiles[field[x, y]];
+                fieldTileMap[x, y - heightOffset] = field[x, y] == BlockColor.None ? null : blockTiles[field[x, y]];
             }
         }
     }
 
     /// <summary>
-    /// 指定したミノをタイルマップにレンダリングします。
+    /// 指定したブロックをタイルマップにレンダリングします。
     /// </summary>
     /// <param name="x">タイルマップのX</param>
     /// <param name="y">タイルマップのY</param>
-    /// <param name="mino">ミノ マトリックス</param>
-    /// <param name="minoType">ミノのタイプ</param>
+    /// <param name="blockShape">ブロック形状</param>
+    /// <param name="blockColor">ブロックの色</param>
     /// <param name="map">タイルマップ</param>
-    private void RenderMinoToTilemap(int x, int y, bool[,] mino, MinoType minoType, Tilemap map)
+    private void RenderBlockToTilemap(int x, int y, bool[,] blockShape, BlockColor blockColor, Tilemap map)
     {
-        var tile = minoTiles[minoType];
-        for (var i = 0; i < mino.GetLength(0); i++)
+        var tile = blockTiles[blockColor];
+        for (var i = 0; i < blockShape.GetLength(0); i++)
         {
-            for (var j = 0; j < mino.GetLength(1); j++)
+            for (var j = 0; j < blockShape.GetLength(1); j++)
             {
-                if (!mino[i, j]) continue;
+                if (!blockShape[i, j]) continue;
                 map[x + i, y + j] = tile;
             }
         }
@@ -681,13 +681,13 @@ public class GameScene : Scene
     }
 
     /// <summary>
-    /// ミノや壁のテクスチャから、<see cref="Tile"/> を生成します。
+    /// ブロックや壁のテクスチャから、<see cref="Tile"/> を生成します。
     /// </summary>
     private void InitializeTiles()
     {
-        foreach (var (type, texture) in Resources.Mino)
+        foreach (var (type, texture) in Resources.Block)
         {
-            minoTiles[type] = new Tile(texture);
+            blockTiles[type] = new Tile(texture);
         }
 
         wallTile = new Tile(Resources.Wall);
@@ -699,15 +699,15 @@ public class GameScene : Scene
     private void RenderHoldNext()
     {
         uiTileMap.Clear();
-        if (currentHold != MinoType.None)
+        if (currentHold != BlockColor.None)
         {
-            RenderMinoToTilemap(holdPosition.X, holdPosition.Y, Minos[currentHold][0], canHold ? currentHold : MinoType.Ghost, uiTileMap);
+            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, Shapes[currentHold][0], canHold ? currentHold : BlockColor.Ghost, uiTileMap);
         }
 
         var i = 0;
         foreach (var type in nextQueue.Take(4))
         {
-            RenderMinoToTilemap(nextPosition.X, nextPosition.Y + i * 4, Minos[type][0], type, uiTileMap);
+            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, Shapes[type][0], type, uiTileMap);
             i++;
         }
     }

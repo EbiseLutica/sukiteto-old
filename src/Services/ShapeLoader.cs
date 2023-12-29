@@ -2,29 +2,29 @@ using Sukiteto;
 
 namespace SukiTeto;
 
-public class MinoLoader
+public class ShapeLoader
 {
-    public Dictionary<MinoType, bool[][,]> Mino { get; } = new();
+    public Dictionary<BlockColor, bool[][,]> Shape { get; } = new();
     
-    public bool[][,] this[MinoType type] => Mino[type];
+    public bool[][,] this[BlockColor type] => Shape[type];
     
-    public MinoLoader()
+    public ShapeLoader()
     {
-        var lines = File.ReadAllLines("./assets/data/mino.txt");
+        var lines = File.ReadAllLines("./assets/data/shapes.txt");
         var lineBuffer = new List<string>(16);
         var currentSymbol = '\0';
         
-        static MinoType ParseSymbol(char c)
+        static BlockColor ParseSymbol(char c)
         {
             return c switch
             {
-                'O' => MinoType.O,
-                'J' => MinoType.J,
-                'L' => MinoType.L,
-                'Z' => MinoType.Z,
-                'S' => MinoType.S,
-                'T' => MinoType.T,
-                'I' => MinoType.I,
+                'O' => BlockColor.O,
+                'J' => BlockColor.J,
+                'L' => BlockColor.L,
+                'Z' => BlockColor.Z,
+                'S' => BlockColor.S,
+                'T' => BlockColor.T,
+                'I' => BlockColor.I,
                 _ => throw new ArgumentException("Invalid symbol")
             };
         }
@@ -35,7 +35,7 @@ public class MinoLoader
             {
                 if (lineBuffer.Count != 0)
                 {
-                    Mino.Add(ParseSymbol(currentSymbol), ParseMino(lineBuffer));
+                    Shape.Add(ParseSymbol(currentSymbol), ParseMino(lineBuffer));
                     lineBuffer.Clear();
                 }
                 currentSymbol = line[0];
@@ -47,7 +47,7 @@ public class MinoLoader
         }
 
         if (lineBuffer.Count == 0) return;
-        Mino.Add(ParseSymbol(currentSymbol), ParseMino(lineBuffer));
+        Shape.Add(ParseSymbol(currentSymbol), ParseMino(lineBuffer));
     }
     
     private bool[][,] ParseMino(List<string> lines)

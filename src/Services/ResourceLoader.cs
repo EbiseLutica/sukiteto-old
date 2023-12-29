@@ -4,7 +4,7 @@ namespace Sukiteto;
 
 public class ResourceLoader
 {
-    public Dictionary<MinoType, Texture2D> Mino { get; }
+    public Dictionary<BlockColor, Texture2D> Block { get; }
     
     public Texture2D Wall { get; } = Texture2D.LoadFrom("./assets/textures/wall.png");
 
@@ -19,16 +19,16 @@ public class ResourceLoader
     public ResourceLoader()
     {
         var minos = Texture2D.LoadAndSplitFrom("./assets/textures/minos.png", 8, 1, (8, 8));
-        Mino = new Dictionary<MinoType, Texture2D>
+        Block = new Dictionary<BlockColor, Texture2D>
         {
-            [MinoType.O] = minos[0],
-            [MinoType.J] = minos[1],
-            [MinoType.L] = minos[2],
-            [MinoType.Z] = minos[3],
-            [MinoType.S] = minos[4],
-            [MinoType.T] = minos[5],
-            [MinoType.I] = minos[6],
-            [MinoType.Ghost] = minos[7]
+            [BlockColor.O] = minos[0],
+            [BlockColor.J] = minos[1],
+            [BlockColor.L] = minos[2],
+            [BlockColor.Z] = minos[3],
+            [BlockColor.S] = minos[4],
+            [BlockColor.T] = minos[5],
+            [BlockColor.I] = minos[6],
+            [BlockColor.Ghost] = minos[7]
         };
     }
 }
