@@ -492,7 +492,10 @@ public class GameScene : Scene
         if (!CanPlaceBlock(blockPosition.X, blockPosition.Y, CurrentShape))
         {
             ProcessGameOver();
+            return;
         }
+
+        ProcessFreefall();
     }
 
     /// <summary>
@@ -623,7 +626,7 @@ public class GameScene : Scene
     {
         fixResetCounter = 0;
         fixTimer = 0;
-        blockPosition = (width / 2 - 2, heightOffset - 2);
+        blockPosition = (width / 2 - 2, heightOffset - 3);
         blockRotation = 0;
     }
 
