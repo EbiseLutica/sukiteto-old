@@ -244,7 +244,8 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessFreefall()
     {
-        if (DFKeyboard.Down.IsPressed) return;
+        // Note: DASでの落下よりも落下速度が低いときに、DASでの落下中であれば自由落下しない
+        if (DFKeyboard.Down.IsPressed && (fallSpeed < (1 / das))) return;
         if (fixTimer > 0) return;
 
         freefallDistance += MathF.Min(fallSpeed * Time.DeltaTime, 20);
