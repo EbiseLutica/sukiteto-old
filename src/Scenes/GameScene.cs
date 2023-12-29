@@ -117,6 +117,11 @@ public class GameScene : Scene
     private float dasTimer;
 
     /// <summary>
+    /// 固定猶予リセットカウンター
+    /// </summary>
+    private float fixResetCounter;
+
+    /// <summary>
     /// ホールドできるかどうか
     /// </summary>
     private bool canHold = true;
@@ -165,6 +170,11 @@ public class GameScene : Scene
         [(3, 0)] = new VectorInt[]{ (0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1) },
         [(0, 3)] = new VectorInt[]{ (0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1) },
     };
+
+    /// <summary>
+    /// 固定猶予リセットの最大数（置くかホールドでリセットする）
+    /// </summary>
+    private readonly float fixResetMax = 8;
     
     private readonly Random random = new Random();
 
@@ -351,8 +361,7 @@ public class GameScene : Scene
         (currentHold, currentMino) = (currentMino, currentHold);
         canHold = false;
         RenderHoldNext();
-        minoPosition = (width / 2 - 2, heightOffset - 2);
-        minoRotation = 0;
+        ResetStateForSpawning();
     }
 
     private void ProcessLineClear()
@@ -419,13 +428,12 @@ public class GameScene : Scene
         {
             fixTimer += Time.DeltaTime;
         }
-        else
+        else if (fixTimer > 0)
         {
-            fixTimer = 0;
+            ResetFix();
         }
         
         if (fixTimer < graceTimeForFix) return;
-        fixTimer = 0;
         PlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix, currentMino);
         ProcessLineClear();
         SpawnMino();
@@ -449,6 +457,7 @@ public class GameScene : Scene
         if (!kickValue.HasValue) return;
         minoPosition += kickValue.Value;
         minoRotation = nextRotation;
+        ResetFix();
     }
     
     private void RotateRight()
@@ -459,6 +468,18 @@ public class GameScene : Scene
         if (!kickValue.HasValue) return;
         minoPosition += kickValue.Value;
         minoRotation = nextRotation;
+        ResetFix();
+    }
+
+    private void ResetFix()
+    {
+        if (fixResetCounter >= fixResetMax) return;
+        if (!(fixTimer > 0)) return;
+        fixTimer = 0;
+        fixResetCounter++;
+        // TODO: リセット回数を8回に制限する
+    }
+
     private VectorInt? TryKick(int nextRotation)
     {
         var table = currentMino == MinoType.I ? kickTableI : kickTable;
@@ -585,13 +606,20 @@ public class GameScene : Scene
             EnqueueNexts();
         }
 
-        canHold = true;
         RenderHoldNext();
-        minoPosition = (width / 2 - 2, heightOffset - 2);
-        minoRotation = 0;
+        ResetStateForSpawning();
+        canHold = true;
         if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
         {
             ProcessGameOver();
         }
+    }
+
+    private void ResetStateForSpawning()
+    {
+        fixResetCounter = 0;
+        fixTimer = 0;
+        minoPosition = (width / 2 - 2, heightOffset - 2);
+        minoRotation = 0;
     }
 }
