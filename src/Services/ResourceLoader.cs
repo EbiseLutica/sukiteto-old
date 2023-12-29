@@ -18,7 +18,7 @@ public class ResourceLoader
 
     public ResourceLoader()
     {
-        var minos = Texture2D.LoadAndSplitFrom("./assets/textures/minos.png", 8, 1, (8, 8));
+        var minos = Texture2D.LoadAndSplitFrom("./assets/textures/shapes.png", 8, 1, (8, 8));
         Block = new Dictionary<BlockColor, Texture2D>
         {
             [BlockColor.O] = minos[0],

@@ -7,7 +7,7 @@
     <Nullable>disable</Nullable>
     <AssemblyName>Sukiteto</AssemblyName>
     <RootNamespace>Sukiteto</RootNamespace>
-    <LangVersion>12</LangVersion>
+    <LangVersion>11</LangVersion>
     <Title>SUKITETO</Title>
     <Authors>Ebise Lutica</Authors>
     <Description>A Stacker Game</Description>
