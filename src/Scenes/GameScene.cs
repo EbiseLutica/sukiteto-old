@@ -147,6 +147,9 @@ public class GameScene : Scene
         MinoType.Z
     };
 
+    /// <summary>
+    /// キックテーブル
+    /// </summary>
     private readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTable = new()
     {
         [(0, 1)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2) },
@@ -159,6 +162,9 @@ public class GameScene : Scene
         [(0, 3)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2) },
     };
 
+    /// <summary>
+    /// キックテーブル（Iミノ用）
+    /// </summary>
     private readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTableI = new()
     {
         [(0, 1)] = new VectorInt[]{ (0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2) },
@@ -188,7 +194,7 @@ public class GameScene : Scene
         field = new MinoType[width, height + heightOffset];
         
         InitializeTiles();
-        BuildWalls();
+        RenderWalls();
         EnqueueNexts();
         RenderHoldNext();
         SpawnMino();
@@ -233,6 +239,9 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// 自由落下の制御
+    /// </summary>
     private void ProcessFreefall()
     {
         if (DFKeyboard.Down.IsPressed) return;
@@ -252,6 +261,9 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// DAS（遅延付き連射入力）の制御
+    /// </summary>
     private void ProcessDas()
     {
         isLeftPressed = isRightPressed = isDownPressed = false;
@@ -293,6 +305,9 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// ユーザー入力の処理
+    /// </summary>
     private void ProcessInput()
     {
         if (isLeftPressed && CanPlaceMino(minoPosition.X - 1, minoPosition.Y, MinoMatrix))
@@ -325,14 +340,14 @@ public class GameScene : Scene
         // 左回転
         if (DFKeyboard.Z.IsKeyDown)
         {
-            RotateLeft();
+            ProcessRotateLeft();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // 右回転
         if (DFKeyboard.X.IsKeyDown)
         {
-            RotateRight();
+            ProcessRotateRight();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
@@ -350,12 +365,44 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// 左回転の処理
+    /// </summary>
+    private void ProcessRotateLeft()
+    {
+        var nextRotation = minoRotation - 1;
+        if (nextRotation < 0) nextRotation = 3;
+        var kickValue = TryKick(nextRotation);
+        if (!kickValue.HasValue) return;
+        minoPosition += kickValue.Value;
+        minoRotation = nextRotation;
+        ResetFix();
+    }
+    
+    /// <summary>
+    /// 右回転
+    /// </summary>
+    private void ProcessRotateRight()
+    {
+        var nextRotation = minoRotation + 1;
+        if (nextRotation > 3) nextRotation = 0;
+        var kickValue = TryKick(nextRotation);
+        if (!kickValue.HasValue) return;
+        minoPosition += kickValue.Value;
+        minoRotation = nextRotation;
+        ResetFix();
+    }
+
+    /// <summary>
+    ///  ホールドの処理
+    /// </summary>
     private void ProcessHold()
     {
         if (currentHold == MinoType.None)
         {
             currentHold = currentMino;
             SpawnMino();
+            canHold = false;
             return;
         }
         (currentHold, currentMino) = (currentMino, currentHold);
@@ -364,6 +411,29 @@ public class GameScene : Scene
         ResetStateForSpawning();
     }
 
+    /// <summary>
+    /// ミノが床に固定するまでの猶予時間の処理
+    /// </summary>
+    private void ProcessFix()
+    {
+        if (!CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
+        {
+            fixTimer += Time.DeltaTime;
+        }
+        else if (fixTimer > 0)
+        {
+            ResetFix();
+        }
+        
+        if (fixTimer < graceTimeForFix) return;
+        PlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix, currentMino);
+        ProcessLineClear();
+        SpawnMino();
+    }
+
+    /// <summary>
+    /// ラインクリア処理
+    /// </summary>
     private void ProcessLineClear()
     {
         var cleared = 0;
@@ -388,6 +458,41 @@ public class GameScene : Scene
         // TODO: ラインクリアの音とかスコアとか
         Audio.PlayOneShotAsync(Resources.SfxLineClear);
     }
+    
+    /// <summary>
+    /// ゲームオーバーの処理
+    /// </summary>
+    private void ProcessGameOver()
+    {
+        Audio.Stop();
+        isGameOver = true;
+        var gameoverText = new TextElement("GAME OVER", 32, DFFontStyle.Normal, Color.Red);
+        gameoverText.Location = (320 / 2 - gameoverText.Width / 2, 240 / 2 - gameoverText.Height / 2);
+        Audio.Play(Resources.SfxGameOver);
+        Root.Add(gameoverText);
+    }
+
+    /// <summary>
+    /// ネクストのミノを召喚し、必要ならネクストを追加します。
+    /// </summary>
+    private void SpawnMino()
+    {
+        currentMino = nextQueue.Dequeue();
+        // NEXTが減ってきたら補充する
+        if (nextQueue.Count < 7)
+        {
+            EnqueueNexts();
+        }
+
+        RenderHoldNext();
+        ResetStateForSpawning();
+        canHold = true;
+
+        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
+        {
+            ProcessGameOver();
+        }
+    }
 
     /// <summary>
     /// フィールドの y 行を消して、それより上の行を下に1ずつずらします。
@@ -411,6 +516,9 @@ public class GameScene : Scene
         isFieldUpdated = true;
     }
 
+    /// <summary>
+    /// 現在のミノがそのまま降下したときに到達するY座標を算出します。
+    /// </summary>
     private float RayToDown()
     {
         var y = minoPosition.Y;
@@ -422,64 +530,22 @@ public class GameScene : Scene
         return y;
     }
 
-    private void ProcessFix()
-    {
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y + 1, MinoMatrix))
-        {
-            fixTimer += Time.DeltaTime;
-        }
-        else if (fixTimer > 0)
-        {
-            ResetFix();
-        }
-        
-        if (fixTimer < graceTimeForFix) return;
-        PlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix, currentMino);
-        ProcessLineClear();
-        SpawnMino();
-    }
-    
-    private void ProcessGameOver()
-    {
-        Audio.Stop();
-        isGameOver = true;
-        var gameoverText = new TextElement("GAME OVER", 32, DFFontStyle.Normal, Color.Red);
-        gameoverText.Location = (320 / 2 - gameoverText.Width / 2, 240 / 2 - gameoverText.Height / 2);
-        Audio.Play(Resources.SfxGameOver);
-        Root.Add(gameoverText);
-    }
-
-    private void RotateLeft()
-    {
-        var nextRotation = minoRotation - 1;
-        if (nextRotation < 0) nextRotation = 3;
-        var kickValue = TryKick(nextRotation);
-        if (!kickValue.HasValue) return;
-        minoPosition += kickValue.Value;
-        minoRotation = nextRotation;
-        ResetFix();
-    }
-    
-    private void RotateRight()
-    {
-        var nextRotation = minoRotation + 1;
-        if (nextRotation > 3) nextRotation = 0;
-        var kickValue = TryKick(nextRotation);
-        if (!kickValue.HasValue) return;
-        minoPosition += kickValue.Value;
-        minoRotation = nextRotation;
-        ResetFix();
-    }
-
+    /// <summary>
+    /// 固定猶予タイマーをリセットする
+    /// </summary>
     private void ResetFix()
     {
         if (fixResetCounter >= fixResetMax) return;
         if (!(fixTimer > 0)) return;
         fixTimer = 0;
         fixResetCounter++;
-        // TODO: リセット回数を8回に制限する
     }
 
+    /// <summary>
+    /// キックテーブルを元にミノのキックを試みます。
+    /// </summary>
+    /// <param name="nextRotation">試行する回転</param>
+    /// <returns>キックが成功した場合はその相対座標、失敗した場合は<c>null</c>。</returns>
     private VectorInt? TryKick(int nextRotation)
     {
         var table = currentMino == MinoType.I ? kickTableI : kickTable;
@@ -495,6 +561,13 @@ public class GameScene : Scene
         return null;
     }
 
+    /// <summary>
+    /// ミノを指定した位置に配置します。
+    /// </summary>
+    /// <param name="x">フィールドのX</param>
+    /// <param name="y">フィールドのY</param>
+    /// <param name="mino">ミノ マトリックス</param>
+    /// <param name="minoType">ミノの色</param>
     private void PlaceMino(int x, int y, bool[,] mino, MinoType minoType)
     {
         for (var i = 0; i < mino.GetLength(0); i++)
@@ -509,6 +582,13 @@ public class GameScene : Scene
         isFieldUpdated = true;
     }
     
+    /// <summary>
+    /// ミノをその位置に配置できるかどうかを算出します。
+    /// </summary>
+    /// <param name="x">フィールド X</param>
+    /// <param name="y">フィールド Y</param>
+    /// <param name="mino">ミノ マトリックス</param>
+    /// <returns>配置できる（衝突しない）場合は<c>true</c>を、衝突してしまう場合は<c>false</c>を返します。</returns>
     private bool CanPlaceMino(int x, int y, bool[,] mino)
     {
         for (var i = 0; i < mino.GetLength(0); i++)
@@ -524,6 +604,31 @@ public class GameScene : Scene
         return true;
     }
 
+    /// <summary>
+    /// ネクストに新たなミノを挿入します。
+    /// </summary>
+    private void EnqueueNexts()
+    {
+        foreach (var type in allMinos.OrderBy(_ => random.Next()))
+        {
+            nextQueue.Enqueue(type);
+        }
+    }
+
+    /// <summary>
+    /// ミノのスポーンおよびホールドから引っ張ってきたときに行うリセット処理
+    /// </summary>
+    private void ResetStateForSpawning()
+    {
+        fixResetCounter = 0;
+        fixTimer = 0;
+        minoPosition = (width / 2 - 2, heightOffset - 2);
+        minoRotation = 0;
+    }
+
+    /// <summary>
+    /// 現在のフィールドをタイルマップにレンダリングします。
+    /// </summary>
     private void RenderField()
     {
         for (var x = 0; x < width; x++)
@@ -535,6 +640,14 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// 指定したミノをタイルマップにレンダリングします。
+    /// </summary>
+    /// <param name="x">タイルマップのX</param>
+    /// <param name="y">タイルマップのY</param>
+    /// <param name="mino">ミノ マトリックス</param>
+    /// <param name="minoType">ミノのタイプ</param>
+    /// <param name="map">タイルマップ</param>
     private void RenderMinoToTilemap(int x, int y, bool[,] mino, MinoType minoType, Tilemap map)
     {
         var tile = minoTiles[minoType];
@@ -548,7 +661,10 @@ public class GameScene : Scene
         }
     }
 
-    private void BuildWalls()
+    /// <summary>
+    /// 壁をタイルマップに描画します。
+    /// </summary>
+    private void RenderWalls()
     {
         // 縦
         for (var y = 0; y <= height; y++)
@@ -564,6 +680,9 @@ public class GameScene : Scene
         }
     }
 
+    /// <summary>
+    /// ミノや壁のテクスチャから、<see cref="Tile"/> を生成します。
+    /// </summary>
     private void InitializeTiles()
     {
         foreach (var (type, texture) in Resources.Mino)
@@ -574,14 +693,9 @@ public class GameScene : Scene
         wallTile = new Tile(Resources.Wall);
     }
 
-    private void EnqueueNexts()
-    {
-        foreach (var type in allMinos.OrderBy(_ => random.Next()))
-        {
-            nextQueue.Enqueue(type);
-        }
-    }
-
+    /// <summary>
+    /// ホールド、ネクストを画面上にレンダリングします。
+    /// </summary>
     private void RenderHoldNext()
     {
         uiTileMap.Clear();
@@ -596,30 +710,5 @@ public class GameScene : Scene
             RenderMinoToTilemap(nextPosition.X, nextPosition.Y + i * 4, Minos[type][0], type, uiTileMap);
             i++;
         }
-    }
-
-    private void SpawnMino()
-    {
-        currentMino = nextQueue.Dequeue();
-        if (nextQueue.Count < 7)
-        {
-            EnqueueNexts();
-        }
-
-        RenderHoldNext();
-        ResetStateForSpawning();
-        canHold = true;
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, MinoMatrix))
-        {
-            ProcessGameOver();
-        }
-    }
-
-    private void ResetStateForSpawning()
-    {
-        fixResetCounter = 0;
-        fixTimer = 0;
-        minoPosition = (width / 2 - 2, heightOffset - 2);
-        minoRotation = 0;
     }
 }
