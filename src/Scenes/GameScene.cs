@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Drawing;
 using DotFeather;
 using Sukiteto;
@@ -141,6 +140,30 @@ public class GameScene : Scene
         MinoType.S,
         MinoType.T,
         MinoType.Z
+    };
+
+    private readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTable = new()
+    {
+        [(0, 1)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2) },
+        [(1, 0)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2) },
+        [(1, 2)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2) },
+        [(2, 1)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2) },
+        [(2, 3)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2) },
+        [(3, 2)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2) },
+        [(3, 0)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2) },
+        [(0, 3)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2) },
+    };
+
+    private readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTableI = new()
+    {
+        [(0, 1)] = new VectorInt[]{ (0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2) },
+        [(1, 0)] = new VectorInt[]{ (0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2) },
+        [(1, 2)] = new VectorInt[]{ (0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1) },
+        [(2, 1)] = new VectorInt[]{ (0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1) },
+        [(2, 3)] = new VectorInt[]{ (0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2) },
+        [(3, 2)] = new VectorInt[]{ (0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2) },
+        [(3, 0)] = new VectorInt[]{ (0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1) },
+        [(0, 3)] = new VectorInt[]{ (0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1) },
     };
     
     private readonly Random random = new Random();
@@ -422,7 +445,9 @@ public class GameScene : Scene
     {
         var nextRotation = minoRotation - 1;
         if (nextRotation < 0) nextRotation = 3;
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, Minos[currentMino][nextRotation])) return;
+        var kickValue = TryKick(nextRotation);
+        if (!kickValue.HasValue) return;
+        minoPosition += kickValue.Value;
         minoRotation = nextRotation;
     }
     
@@ -430,8 +455,23 @@ public class GameScene : Scene
     {
         var nextRotation = minoRotation + 1;
         if (nextRotation > 3) nextRotation = 0;
-        if (!CanPlaceMino(minoPosition.X, minoPosition.Y, Minos[currentMino][nextRotation])) return;
+        var kickValue = TryKick(nextRotation);
+        if (!kickValue.HasValue) return;
+        minoPosition += kickValue.Value;
         minoRotation = nextRotation;
+    private VectorInt? TryKick(int nextRotation)
+    {
+        var table = currentMino == MinoType.I ? kickTableI : kickTable;
+        var testCases = table[(minoRotation, nextRotation)];
+        foreach (var testCase in testCases)
+        {
+            if (CanPlaceMino(minoPosition.X + testCase.X, minoPosition.Y + testCase.Y, Minos[currentMino][nextRotation]))
+            {
+                return testCase;
+            }
+        }
+
+        return null;
     }
 
     private void PlaceMino(int x, int y, bool[,] mino, MinoType minoType)
