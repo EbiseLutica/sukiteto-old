@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using DotFeather;
-using SukiTeto;
 
 namespace Sukiteto;
 

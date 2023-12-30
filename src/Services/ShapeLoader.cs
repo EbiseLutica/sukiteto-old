@@ -1,6 +1,6 @@
 using Sukiteto;
 
-namespace SukiTeto;
+namespace Sukiteto;
 
 public class ShapeLoader
 {

@@ -1,6 +1,5 @@
 ﻿using DotFeather;
 using Sukiteto;
-using SukiTeto;
 
 DF.Window.Start += () =>
 {

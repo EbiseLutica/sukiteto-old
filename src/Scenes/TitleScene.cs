@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using DotFeather;
 
-namespace SukiTeto;
+namespace Sukiteto;
 
 public class TitleScene : Scene
 {
