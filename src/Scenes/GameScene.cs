@@ -74,7 +74,12 @@ public class GameScene : Scene
         {
             Audio.PlayOneShotAsync(Resources.SfxLineClear);
         };
-        
+
+        game.BlockHit += () =>
+        {
+            Audio.PlayOneShotAsync(Resources.SfxHit);
+        };
+
         game.FieldUpdate += () =>
         {
             RenderField();

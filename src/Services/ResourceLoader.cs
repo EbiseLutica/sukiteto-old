@@ -14,6 +14,7 @@ public class ResourceLoader
     public IAudioSource SfxHold { get; } = new WaveAudioSource("./assets/sounds/hold.wav");
     public IAudioSource SfxLineClear { get; } = new WaveAudioSource("./assets/sounds/lineclear.wav");
     public IAudioSource SfxHardDrop { get; } = new WaveAudioSource("./assets/sounds/hard_drop.wav");
+    public IAudioSource SfxHit { get; } = new WaveAudioSource("./assets/sounds/hit.wav");
     public IAudioSource SfxGameOver { get; } = new WaveAudioSource("./assets/sounds/gameover.wav");
 
     public ResourceLoader()

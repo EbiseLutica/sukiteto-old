@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using DotFeather;
+﻿using DotFeather;
 using static Sukiteto.Global;
 
 namespace Sukiteto;
@@ -261,6 +260,7 @@ public class GameService
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape))
         {
+            if (fixTimer == 0) BlockHit?.Invoke();
             fixTimer += Time.DeltaTime;
         }
         else if (fixTimer > 0)
@@ -455,4 +455,5 @@ public class GameService
     public event Action SpawnNext;
     public event Action GameOver;
     public event Action FieldUpdate;
+    public event Action BlockHit;
 }
