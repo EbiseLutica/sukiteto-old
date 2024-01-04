@@ -222,6 +222,7 @@ public class GameService
         {
             CurrentHold = CurrentBlockColor;
             SpawnNextBlock();
+            Hold?.Invoke();
             CanHold = false;
             return;
         }
