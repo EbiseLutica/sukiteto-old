@@ -90,6 +90,12 @@ public class GameScene : Scene
             isGameOver = true;
             ProcessGameOver();
         };
+
+        game.TspinRotate += () =>
+        {
+            Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
+        };
+
         
         InitializeTiles();
         RenderWalls();
