@@ -91,6 +91,11 @@ public class GameService
     /// Tspinされたかどうか
     /// </summary>
     private bool isTspin;
+    
+    /// <summary>
+    /// ラインクリア時に消えたラインのインデックスを格納するバッファ
+    /// </summary>
+    private readonly int[] clearedLineIndicesBuffer;
 
     private static readonly BlockColor[] allBlocks =
     {
@@ -142,7 +147,7 @@ public class GameService
 
     public GameService()
     {
-        
+        clearedLineIndicesBuffer = new int[Height + HeightOffset];
     }
 
     public void Start()
@@ -288,8 +293,11 @@ public class GameService
     private void ProcessLineClear()
     {
         var cleared = 0;
-        for (var y = Height + HeightOffset - 1; y >= 0; y--)
+        var bottom = Height + HeightOffset - 1;
+        var y2 = bottom + 1;
+        for (var y = bottom; y >= 0; y--)
         {
+            y2--;
             var isLineFilled = true;
             for (var x = 0; x < Width; x++)
             {
@@ -299,6 +307,7 @@ public class GameService
             }
 
             if (!isLineFilled) continue;
+            clearedLineIndicesBuffer[cleared] = y2;
             cleared++;
             ShiftDownField(y);
             y++;
@@ -309,7 +318,7 @@ public class GameService
             // TODO: 追加判定をスコアに加味する
             LineClear?.Invoke(new LineClearEventArgs()
             {
-                ClearedLines = cleared,
+                ClearedLineIndices = clearedLineIndicesBuffer.AsMemory(0, cleared),
                 IsTSpin = isTspin,
             });
         }
