@@ -1,4 +1,5 @@
 ﻿using DotFeather;
+using Silk.NET.SDL;
 using static Sukiteto.Global;
 
 namespace Sukiteto;
@@ -85,6 +86,11 @@ public class GameService
     /// ソフトドロップ中かどうか
     /// </summary>
     private bool isDroppingSoftly;
+
+    /// <summary>
+    /// Tspinされたかどうか
+    /// </summary>
+    private bool isTspin;
 
     private static readonly BlockColor[] allBlocks =
     {
@@ -189,6 +195,7 @@ public class GameService
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
+        isTspin = CheckTspin();
     }
     
     public void TriggerRotateRight()
@@ -200,6 +207,7 @@ public class GameService
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
+        isTspin = CheckTspin();
     }
     
     public void TriggerHold()
@@ -302,8 +310,71 @@ public class GameService
             LineClear?.Invoke(new LineClearEventArgs()
             {
                 ClearedLines = cleared,
+                IsTSpin = isTspin,
             });
         }
+    }
+
+    /// <summary>
+    /// Tspinが取れているかどうかを判定する
+    /// </summary>
+    private bool CheckTspin()
+    {
+        // Tを持っているかどうかチェック
+        if (CurrentBlockColor != BlockColor.T)
+        {
+            // 持っていなかったら抜ける
+            return false;
+        }
+
+        // Tspinの判定カウンタ
+        int counter = 0;
+
+        VectorInt offsetPosition = BlockPosition + (1, 1);
+
+        // 左上
+        {
+            int checkX = offsetPosition.X - 1;
+            int checkY = offsetPosition.Y - 1;
+            if (checkY >= 0)
+            {
+                if (checkX < 0 || Field[checkX, checkY] != BlockColor.None) counter++;
+            }
+        }
+
+        // 右上
+        {
+            int checkX = offsetPosition.X + 1;
+            int checkY = offsetPosition.Y - 1;
+            if (checkY >= 0)
+            {
+                if (checkX >= Width || Field[checkX, checkY] != BlockColor.None) counter++;
+            }
+        }
+
+        // 右下
+        {
+            int checkX = offsetPosition.X + 1;
+            int checkY = offsetPosition.Y + 1;
+            if (checkX >= Width || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None) counter++;
+        }
+
+        // 左下
+        {
+            int checkX = offsetPosition.X - 1;
+            int checkY = offsetPosition.Y + 1;
+            if (checkX < 0 || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None) counter++;
+        }
+                
+        // Tspinが成立していたらtrueとEventを返す
+        if (counter >= 3)
+        {
+            TspinRotate.Invoke();
+            return true;
+        }
+
+        // Tspinが成立しなかった
+        return false;
     }
 
     /// <summary>
@@ -456,4 +527,5 @@ public class GameService
     public event Action GameOver;
     public event Action FieldUpdate;
     public event Action BlockHit;
+    public event Action TspinRotate;
 }

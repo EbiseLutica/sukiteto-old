@@ -16,6 +16,8 @@ public class ResourceLoader
     public IAudioSource SfxHardDrop { get; } = new WaveAudioSource("./assets/sounds/hard_drop.wav");
     public IAudioSource SfxHit { get; } = new WaveAudioSource("./assets/sounds/hit.wav");
     public IAudioSource SfxGameOver { get; } = new WaveAudioSource("./assets/sounds/gameover.wav");
+    public IAudioSource SfxTspinRotate { get; } = new WaveAudioSource("./assets/sounds/hard_drop.wav");
+    public IAudioSource SfxTspinClear { get; } = new WaveAudioSource("./assets/sounds/hard_drop.wav");
 
     public ResourceLoader()
     {
