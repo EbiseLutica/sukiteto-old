@@ -109,7 +109,7 @@ public class GameScene : Scene
 
         currentBlockTileMap.Location = fieldTileMap.Location = (
             320 / 2 - game.Width * 8 / 2f,
-            240 / 2 - game.Height * 8 / 2f
+            240 / 2 - game.Height * 8 / 2f - game.HeightOffset * 8
             );
 
         Audio.Play(Resources.BgmTypeA, 0);
@@ -243,7 +243,7 @@ public class GameScene : Scene
         {
             for (var y = 0; y < game.Height + game.HeightOffset; y++)
             {
-                fieldTileMap[x, y - game.HeightOffset] = game.Field[x, y] == BlockColor.None ? null : blockTiles[game.Field[x, y]];
+                fieldTileMap[x, y] = game.Field[x, y] == BlockColor.None ? null : blockTiles[game.Field[x, y]];
             }
         }
     }
@@ -254,8 +254,8 @@ public class GameScene : Scene
         if (isPausingGame) return;
         var ghostY = game.RayToDown();
         var pos = game.BlockPosition;
-        RenderBlockToTilemap(pos.X, ghostY - game.HeightOffset, game.CurrentShape, BlockColor.Ghost, currentBlockTileMap);
-        RenderBlockToTilemap(pos.X, pos.Y - game.HeightOffset, game.CurrentShape, game.CurrentBlockColor, currentBlockTileMap);
+        RenderBlockToTilemap(pos.X, ghostY, game.CurrentShape, BlockColor.Ghost, currentBlockTileMap);
+        RenderBlockToTilemap(pos.X, pos.Y, game.CurrentShape, game.CurrentBlockColor, currentBlockTileMap);
     }
     
     private IEnumerator AnimateLineClear(LineClearEventArgs e)
@@ -264,7 +264,7 @@ public class GameScene : Scene
         var span = e.ClearedLineIndices.Span;
         for (var i = 0; i < span.Length; i++)
         {
-            var y = span[i] - game.HeightOffset;
+            var y = span[i];
             for (var x = 0; x < game.Width; x++)
             {
                 fieldTileMap[x, y] = null;
@@ -305,14 +305,14 @@ public class GameScene : Scene
         // 縦
         for (var y = 0; y <= game.Height; y++)
         {
-            fieldTileMap[-1, y] = wallTile;
-            fieldTileMap[game.Width, y] = wallTile;
+            fieldTileMap[-1, y + game.HeightOffset] = wallTile;
+            fieldTileMap[game.Width, y + game.HeightOffset] = wallTile;
         }
         
         // 横
         for (var x = 0; x < game.Width; x++)
         {
-            fieldTileMap[x, game.Height] = wallTile;
+            fieldTileMap[x, game.Height + game.HeightOffset] = wallTile;
         }
     }
 
