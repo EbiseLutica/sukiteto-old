@@ -326,6 +326,7 @@ public class GameService
             {
                 ClearedLineIndices = clearedLineIndicesBuffer.AsMemory(0, cleared),
                 IsTSpin = isTspin,
+                IsTSpinMini = isTspinMini,
             });
         }
     }
