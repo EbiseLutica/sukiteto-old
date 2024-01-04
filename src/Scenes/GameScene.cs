@@ -76,7 +76,7 @@ public class GameScene : Scene
         
         game.LineClear += (e) =>
         {
-            Audio.PlayOneShotAsync(Resources.SfxLineClear);
+            Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
             isPausingGame = true;
             CoroutineRunner.Start(AnimateLineClear(e));
         };
