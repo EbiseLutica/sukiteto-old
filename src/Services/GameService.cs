@@ -97,6 +97,11 @@ public class GameService
     /// </summary>
     private readonly int[] clearedLineIndicesBuffer;
 
+    /// <summary>
+    /// TspinMiniかどうか
+    /// </summary>
+    private bool isTspinMini;
+
     private static readonly BlockColor[] allBlocks =
     {
         BlockColor.I,
@@ -200,7 +205,7 @@ public class GameService
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
-        isTspin = CheckTspin();
+        isTspin = CheckTspin(kickValue);
     }
     
     public void TriggerRotateRight()
@@ -212,7 +217,7 @@ public class GameService
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
-        isTspin = CheckTspin();
+        isTspin = CheckTspin(kickValue);
     }
     
     public void TriggerHold()
@@ -321,6 +326,7 @@ public class GameService
             {
                 ClearedLineIndices = clearedLineIndicesBuffer.AsMemory(0, cleared),
                 IsTSpin = isTspin,
+                IsTSpinMini = isTspinMini,
             });
         }
     }
@@ -328,7 +334,7 @@ public class GameService
     /// <summary>
     /// Tspinが取れているかどうかを判定する
     /// </summary>
-    private bool CheckTspin()
+    private bool CheckTspin(VectorInt? kickValue)
     {
         // Tを持っているかどうかチェック
         if (CurrentBlockColor != BlockColor.T)
@@ -337,8 +343,14 @@ public class GameService
             return false;
         }
 
+        // TspinMiniフラグの初期化
+        isTspinMini = false;
+
         // Tspinの判定カウンタ
         int counter = 0;
+
+        // 4隅の判定箇所のうちTspinMiniの条件を満たす場所が空いているかどうか
+        bool isMini = false;
 
         VectorInt offsetPosition = BlockPosition + (1, 1);
 
@@ -348,7 +360,15 @@ public class GameService
             int checkY = offsetPosition.Y - 1;
             if (checkY >= 0)
             {
-                if (checkX < 0 || Field[checkX, checkY] != BlockColor.None) counter++;
+                if (checkX < 0 || Field[checkX, checkY] != BlockColor.None) 
+                {
+                    counter++;
+                }
+                else if (BlockRotation == 0 || BlockRotation == 3)
+                {
+                    //TspinMini判定
+                    isMini = true;
+                }
             }
         }
 
@@ -358,7 +378,16 @@ public class GameService
             int checkY = offsetPosition.Y - 1;
             if (checkY >= 0)
             {
-                if (checkX >= Width || Field[checkX, checkY] != BlockColor.None) counter++;
+                if (checkX >= Width || Field[checkX, checkY] != BlockColor.None)
+                {
+                    counter++;
+
+                }
+                else if (BlockRotation == 0 || BlockRotation == 1)
+                {
+                    //TspinMini判定
+                    isMini = true;
+                }
             }
         }
 
@@ -366,19 +395,47 @@ public class GameService
         {
             int checkX = offsetPosition.X + 1;
             int checkY = offsetPosition.Y + 1;
-            if (checkX >= Width || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None) counter++;
+            if (checkX >= Width || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None)
+            {
+                counter++;
+            }
+            else if (BlockRotation == 1 || BlockRotation == 2)
+            {
+                //TspinMini判定
+                isMini = true;
+            }
+
         }
 
         // 左下
         {
             int checkX = offsetPosition.X - 1;
             int checkY = offsetPosition.Y + 1;
-            if (checkX < 0 || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None) counter++;
+            if (checkX < 0 || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None)
+            {
+                counter++;
+            }
+            else if (BlockRotation == 2 || BlockRotation == 3)
+            {
+                //TspinMini判定
+                isMini = true;
+            }
         }
-                
+
+        // TspinMiniの条件判定のためキックの値を絶対値にする
+        VectorInt checkKick = (0, 0);
+        checkKick.X = Math.Abs(kickValue.Value.X);
+        checkKick.Y = Math.Abs(kickValue.Value.Y);
+
         // Tspinが成立していたらtrueとEventを返す
         if (counter >= 3)
         {
+            // TspinMiniチェック
+            if (isMini && checkKick != (1, 2))
+            {
+                isTspinMini = true;
+            }
+
             TspinRotate.Invoke();
             return true;
         }
