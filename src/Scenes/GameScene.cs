@@ -55,6 +55,12 @@ public class GameScene : Scene
     /// </summary>
     private static readonly float arr = 1f / 60 * 2;
 
+    /// <summary>
+    /// ポーズ中に表示するテキスト
+    /// </summary>
+	private TextElement PausingText = new TextElement("PAUSE", 32, DFFontStyle.Normal, Color.White);
+
+
     public override void OnStart(Dictionary<string, object> args)
     {
         fieldTileMap = new Tilemap((8, 8));
@@ -130,12 +136,22 @@ public class GameScene : Scene
             return;
         }
 
-        if (isPausingGame) return;
-        ProcessDas();
-        ProcessInput();
-        game.Tick(Time.DeltaTime);
+        if (isPausingGame)
+        {
+            if (DFKeyboard.Escape.IsKeyDown)
+            {
+				ProcessResume();
+			}
+            return;
+        }
+        else
+        {
+            ProcessDas();
+            ProcessInput();
+            game.Tick(Time.DeltaTime);
 
-        RenderCurrentBlock();
+            RenderCurrentBlock();
+        }
     }
 
     /// <summary>
@@ -173,7 +189,7 @@ public class GameScene : Scene
             if (dasTimer > arr)
             {
                 game.TriggerDown();
-                Audio.PlayOneShotAsync(Resources.SfxMove);
+                //Audio.PlayOneShotAsync(Resources.SfxMove); //ソフトドロップ中うるさいのでコメントアウト
                 dasTimer = 0;
             }
         }
@@ -201,27 +217,54 @@ public class GameScene : Scene
             game.TriggerRotateLeft();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        
+
         // 右回転
         if (DFKeyboard.X.IsKeyDown)
         {
             game.TriggerRotateRight();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
-        
+
         // リロード
         if (DFKeyboard.R.IsKeyDown)
         {
             DF.Router.ChangeScene<GameScene>();
         }
-        
+
         // ホールド
         if (DFKeyboard.C.IsKeyDown)
         {
             game.TriggerHold();
         }
+
+        // ポーズ
+        if (DFKeyboard.Escape.IsKeyDown)
+        {
+            if (!isPausingGame)
+            {
+                ProcessPause();
+            }
+        }
     }
-    
+    /// <summary>
+    /// ポーズの処理
+    /// </summary>
+    private void ProcessPause()
+    {
+		isPausingGame = true;
+		PausingText.Location = (320 / 2 - PausingText.Width / 2, 240 / 2 - PausingText.Height / 2);
+		Root.Add(PausingText);
+	}
+
+    /// <summary>
+    /// レジュームの処理
+    /// </summary>
+    private void ProcessResume()
+    {
+		isPausingGame = false;
+		Root.Remove(PausingText);
+    }
+
     /// <summary>
     /// ゲームオーバーの処理
     /// </summary>
