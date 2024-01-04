@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Drawing;
 using DotFeather;
 
@@ -42,6 +43,8 @@ public class GameScene : Scene
 
     private readonly GameService game = new();
 
+    private bool isPausingGame = false;
+
     /// <summary>
     /// 長押ししてからブロックが動き始めるまでの時間
     /// </summary>
@@ -73,6 +76,8 @@ public class GameScene : Scene
         game.LineClear += (e) =>
         {
             Audio.PlayOneShotAsync(Resources.SfxLineClear);
+            isPausingGame = true;
+            CoroutineRunner.Start(AnimateLineClear(e));
         };
 
         game.BlockHit += () =>
@@ -80,7 +85,7 @@ public class GameScene : Scene
             Audio.PlayOneShotAsync(Resources.SfxHit);
         };
 
-        game.FieldUpdate += () =>
+        game.BlockPlace += () =>
         {
             RenderField();
         };
@@ -96,7 +101,6 @@ public class GameScene : Scene
             Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
         };
 
-        
         InitializeTiles();
         RenderWalls();
 
@@ -125,6 +129,7 @@ public class GameScene : Scene
             return;
         }
 
+        if (isPausingGame) return;
         ProcessDas();
         ProcessInput();
         game.Tick(Time.DeltaTime);
@@ -246,10 +251,29 @@ public class GameScene : Scene
     private void RenderCurrentBlock()
     {
         currentBlockTileMap.Clear();
+        if (isPausingGame) return;
         var ghostY = game.RayToDown();
         var pos = game.BlockPosition;
         RenderBlockToTilemap(pos.X, ghostY - game.HeightOffset, game.CurrentShape, BlockColor.Ghost, currentBlockTileMap);
         RenderBlockToTilemap(pos.X, pos.Y - game.HeightOffset, game.CurrentShape, game.CurrentBlockColor, currentBlockTileMap);
+    }
+    
+    private IEnumerator AnimateLineClear(LineClearEventArgs e)
+    {
+        isPausingGame = true;
+        var span = e.ClearedLineIndices.Span;
+        for (var i = 0; i < span.Length; i++)
+        {
+            var y = span[i] - game.HeightOffset;
+            for (var x = 0; x < game.Width; x++)
+            {
+                fieldTileMap[x, y] = null;
+            }
+        }
+        yield return new WaitForSeconds(0.5f);
+        Audio.PlayOneShotAsync(Resources.SfxLineClearFix);
+        RenderField();
+        isPausingGame = false;
     }
 
     /// <summary>

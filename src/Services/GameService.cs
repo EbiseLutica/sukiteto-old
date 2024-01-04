@@ -442,8 +442,6 @@ public class GameService
         {
             Field[i, 0] = BlockColor.None;
         }
-        
-        FieldUpdate?.Invoke();
     }
 
     /// <summary>
@@ -495,7 +493,7 @@ public class GameService
             }
         }
 
-        FieldUpdate?.Invoke();
+        BlockPlace?.Invoke();
     }
     
     /// <summary>
@@ -535,7 +533,7 @@ public class GameService
     public event Action Hold;
     public event Action SpawnNext;
     public event Action GameOver;
-    public event Action FieldUpdate;
+    public event Action BlockPlace;
     public event Action BlockHit;
     public event Action TspinRotate;
 }
