@@ -66,6 +66,7 @@ public class GameScene : Scene
         game.Hold += () =>
         {
             RenderHoldNext();
+            Audio.PlayOneShotAsync(Resources.SfxHold);
         };
         
         game.SpawnNext += () =>
@@ -218,7 +219,6 @@ public class GameScene : Scene
         if (DFKeyboard.C.IsKeyDown)
         {
             game.TriggerHold();
-            Audio.PlayOneShotAsync(Resources.SfxHold);
         }
     }
     
