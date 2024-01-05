@@ -63,44 +63,13 @@ public class GameScene : Scene
         Root.AddRange(fieldTileMap, currentBlockTileMap, uiTileMap);
         blockTiles = new Dictionary<BlockColor, ITile>();
 
-        game.Hold += () =>
-        {
-            RenderHoldNext();
-            Audio.PlayOneShotAsync(Resources.SfxHold);
-        };
-        
-        game.SpawnNext += () =>
-        {
-            RenderHoldNext();
-        };
-        
-        game.LineClear += (e) =>
-        {
-            Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
-            isPausingGame = true;
-            CoroutineRunner.Start(AnimateLineClear(e));
-        };
-
-        game.BlockHit += () =>
-        {
-            Audio.PlayOneShotAsync(Resources.SfxHit);
-        };
-
-        game.BlockPlace += () =>
-        {
-            RenderField();
-        };
-        
-        game.GameOver += () =>
-        {
-            isGameOver = true;
-            ProcessGameOver();
-        };
-
-        game.TspinRotate += () =>
-        {
-            Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
-        };
+        game.Hold += OnHold;
+        game.SpawnNext += OnSpawnNext;
+        game.LineClear += OnLineClear;
+        game.BlockHit += OnBlockHit;
+        game.BlockPlace += OnBlockPlace;
+        game.GameOver += OnGameOver;
+        game.TspinRotate += OnTspinRotate;
 
         InitializeTiles();
         RenderWalls();
@@ -136,6 +105,45 @@ public class GameScene : Scene
         game.Tick(Time.DeltaTime);
 
         RenderCurrentBlock();
+    }
+
+    private void OnHold()
+    {
+        RenderHoldNext();
+        Audio.PlayOneShotAsync(Resources.SfxHold);
+    }
+
+    private void OnSpawnNext()
+    {
+        RenderHoldNext();
+    }
+
+    private void OnTspinRotate()
+    {
+        Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
+    }
+
+    private void OnGameOver()
+    {
+        isGameOver = true;
+        ProcessGameOver();
+    }
+
+    private void OnBlockPlace()
+    {
+        RenderField();
+    }
+
+    private void OnBlockHit()
+    {
+        Audio.PlayOneShotAsync(Resources.SfxHit);
+    }
+
+    private void OnLineClear(LineClearEventArgs e)
+    {
+        Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
+        isPausingGame = true;
+        CoroutineRunner.Start(AnimateLineClear(e));
     }
 
     /// <summary>
