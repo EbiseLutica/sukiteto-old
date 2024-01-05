@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Drawing;
+using System.Text;
 using DotFeather;
 
 using static Sukiteto.Global;
@@ -144,6 +145,39 @@ public class GameScene : Scene
         Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
         isPausingGame = true;
         CoroutineRunner.Start(AnimateLineClear(e));
+
+        var builder = new StringBuilder();
+
+        if (e.IsTSpin) builder.AppendLine(e.IsTSpinMini ? "T-Spin Mini" : "T-Spin");
+
+        switch (e.ClearedLines)
+        {
+            case 4:
+                builder.AppendLine("QUAD");
+                break;
+            case 3:
+                builder.AppendLine("TRIPLE");
+                break;
+            case 2:
+                builder.AppendLine("DOUBLE");
+                break;
+            case 1 when e.IsTSpin:
+                builder.AppendLine("SINGLE");
+                break;
+        }
+
+        var text = builder.ToString();
+
+        if (string.IsNullOrWhiteSpace(text)) return;
+        
+        var effect = new EffectedTextElement(text, 18, DFFontStyle.Normal, Color.White)
+        {
+            Effect = EffectedTextElement.EffectType.SlideUp,
+            EffectTime = 1,
+            Location = (48, 160)
+        };
+        
+        Root.Add(effect);
     }
 
     /// <summary>
