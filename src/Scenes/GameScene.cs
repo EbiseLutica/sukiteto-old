@@ -82,8 +82,8 @@ public class GameScene : Scene
         
         game.LineClear += (e) =>
         {
-            Audio.PlayOneShotAsync(Resources.SfxLineClear);
-            isPausingGame = true;
+			Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
+			isPausingGame = true;
             CoroutineRunner.Start(AnimateLineClear(e));
         };
 
@@ -144,14 +144,10 @@ public class GameScene : Scene
 			}
             return;
         }
-        else
-        {
-            ProcessDas();
-            ProcessInput();
-            game.Tick(Time.DeltaTime);
-
-            RenderCurrentBlock();
-        }
+        ProcessDas();
+        ProcessInput();
+        game.Tick(Time.DeltaTime);
+        RenderCurrentBlock();
     }
 
     /// <summary>
@@ -189,7 +185,7 @@ public class GameScene : Scene
             if (dasTimer > arr)
             {
                 game.TriggerDown();
-                //Audio.PlayOneShotAsync(Resources.SfxMove); //ソフトドロップ中うるさいのでコメントアウト
+                Audio.PlayOneShotAsync(Resources.SfxMove);
                 dasTimer = 0;
             }
         }
