@@ -261,7 +261,7 @@ public class GameService
         freefallDistance += MathF.Min(FallSpeed * Time.DeltaTime, 20);
         if (freefallDistance < 1) return;
 
-        var distanceInt = (int)MathF.Floor(freefallDistance);
+        var distanceInt = (int)freefallDistance;
         BlockPosition += (0, distanceInt);
         freefallDistance -= distanceInt;
         
