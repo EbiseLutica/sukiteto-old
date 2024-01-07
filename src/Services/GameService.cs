@@ -288,7 +288,6 @@ public class GameService
         }
         
         if (fixTimer < graceTimeForFix) return;
-		Audio.PlayOneShotAsync(Resources.SfxMove);
 		PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();
