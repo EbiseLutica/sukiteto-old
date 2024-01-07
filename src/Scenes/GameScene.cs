@@ -56,6 +56,12 @@ public class GameScene : Scene
     /// </summary>
     private static readonly float arr = 1f / 60 * 2;
 
+    /// <summary>
+    /// ポーズ中に表示するテキスト
+    /// </summary>
+	  private TextElement PausingText = new TextElement("PAUSE", 32, DFFontStyle.Normal, Color.White);
+
+
     public override void OnStart(Dictionary<string, object> args)
     {
         fieldTileMap = new Tilemap((8, 8));
@@ -100,84 +106,18 @@ public class GameScene : Scene
             return;
         }
 
-        if (isPausingGame) return;
+        if (isPausingGame)
+        {
+          if (DFKeyboard.Escape.IsKeyDown)
+          {
+				    ProcessResume();
+			    }
+          return;
+        }
         ProcessDas();
         ProcessInput();
         game.Tick(Time.DeltaTime);
-
         RenderCurrentBlock();
-    }
-
-    private void OnHold()
-    {
-        RenderHoldNext();
-        Audio.PlayOneShotAsync(Resources.SfxHold);
-    }
-
-    private void OnSpawnNext()
-    {
-        RenderHoldNext();
-    }
-
-    private void OnTspinRotate()
-    {
-        Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
-    }
-
-    private void OnGameOver()
-    {
-        isGameOver = true;
-        ProcessGameOver();
-    }
-
-    private void OnBlockPlace()
-    {
-        RenderField();
-    }
-
-    private void OnBlockHit()
-    {
-        Audio.PlayOneShotAsync(Resources.SfxHit);
-    }
-
-    private void OnLineClear(LineClearEventArgs e)
-    {
-        Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
-        isPausingGame = true;
-        CoroutineRunner.Start(AnimateLineClear(e));
-
-        var builder = new StringBuilder();
-
-        if (e.IsTSpin) builder.AppendLine(e.IsTSpinMini ? "T-Spin Mini" : "T-Spin");
-
-        switch (e.ClearedLines)
-        {
-            case 4:
-                builder.AppendLine("QUAD");
-                break;
-            case 3:
-                builder.AppendLine("TRIPLE");
-                break;
-            case 2:
-                builder.AppendLine("DOUBLE");
-                break;
-            case 1 when e.IsTSpin:
-                builder.AppendLine("SINGLE");
-                break;
-        }
-
-        var text = builder.ToString();
-
-        if (string.IsNullOrWhiteSpace(text)) return;
-        
-        var effect = new EffectedTextElement(text, 18, DFFontStyle.Normal, Color.White)
-        {
-            Effect = EffectedTextElement.EffectType.SlideUp,
-            EffectTime = 1,
-            Location = (48, 160)
-        };
-        
-        Root.Add(effect);
     }
 
     /// <summary>
@@ -262,6 +202,33 @@ public class GameScene : Scene
         {
             game.TriggerHold();
         }
+
+        // ポーズ
+        if (DFKeyboard.Escape.IsKeyDown)
+        {
+            if (!isPausingGame)
+            {
+                ProcessPause();
+            }
+        }
+    }
+    /// <summary>
+    /// ポーズの処理
+    /// </summary>
+    private void ProcessPause()
+    {
+		isPausingGame = true;
+		PausingText.Location = (320 / 2 - PausingText.Width / 2, 240 / 2 - PausingText.Height / 2);
+		Root.Add(PausingText);
+	}
+
+    /// <summary>
+    /// レジュームの処理
+    /// </summary>
+    private void ProcessResume()
+    {
+		isPausingGame = false;
+		Root.Remove(PausingText);
     }
     
     /// <summary>
