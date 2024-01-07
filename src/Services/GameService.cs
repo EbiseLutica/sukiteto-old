@@ -1,4 +1,4 @@
-﻿using DotFeather;
+using DotFeather;
 using Silk.NET.SDL;
 using static Sukiteto.Global;
 
@@ -261,7 +261,7 @@ public class GameService
         freefallDistance += MathF.Min(FallSpeed * Time.DeltaTime, 20);
         if (freefallDistance < 1) return;
 
-        var distanceInt = (int)MathF.Floor(freefallDistance);
+        var distanceInt = (int)freefallDistance;
         BlockPosition += (0, distanceInt);
         freefallDistance -= distanceInt;
         
@@ -288,7 +288,7 @@ public class GameService
         }
         
         if (fixTimer < graceTimeForFix) return;
-		PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
+		    PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();
     }
