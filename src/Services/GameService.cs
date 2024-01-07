@@ -1,4 +1,4 @@
-﻿using DotFeather;
+using DotFeather;
 using Silk.NET.SDL;
 using static Sukiteto.Global;
 
@@ -288,6 +288,7 @@ public class GameService
         }
         
         if (fixTimer < graceTimeForFix) return;
+		    PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();
     }
