@@ -5,8 +5,6 @@ namespace Sukiteto;
 public class ResourceLoader
 {
     public Dictionary<BlockColor, Texture2D> Block { get; }
-    
-    public Texture2D Wall { get; } = Texture2D.LoadFrom("./assets/textures/wall.png");
 
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
     
@@ -26,7 +24,7 @@ public class ResourceLoader
 
     public ResourceLoader()
     {
-        var minos = Texture2D.LoadAndSplitFrom("./assets/textures/shapes.png", 8, 1, (8, 8));
+        var minos = Texture2D.LoadAndSplitFrom("./assets/textures/shapes.png", 9, 1, (16, 16));
         Block = new Dictionary<BlockColor, Texture2D>
         {
             [BlockColor.O] = minos[0],
@@ -36,7 +34,8 @@ public class ResourceLoader
             [BlockColor.S] = minos[4],
             [BlockColor.T] = minos[5],
             [BlockColor.I] = minos[6],
-            [BlockColor.Ghost] = minos[7]
+            [BlockColor.Ghost] = minos[7],
+            [BlockColor.Wall] = minos[8],
         };
     }
 

@@ -29,11 +29,6 @@ public class GameScene : Scene
     /// </summary>
     private Dictionary<BlockColor, ITile> blockTiles;
     
-    /// <summary>
-    /// 壁のタイルデータ
-    /// </summary>
-    private ITile wallTile;
-    
     private bool isGameOver;
     
     private float dasTimer;
@@ -58,9 +53,9 @@ public class GameScene : Scene
 
     public override void OnStart(Dictionary<string, object> args)
     {
-        fieldTileMap = new Tilemap((8, 8));
-        currentBlockTileMap = new Tilemap((8, 8));
-        uiTileMap = new Tilemap((8, 8));
+        fieldTileMap = new Tilemap((16, 16));
+        currentBlockTileMap = new Tilemap((16, 16));
+        uiTileMap = new Tilemap((16, 16));
         Root.AddRange(fieldTileMap, currentBlockTileMap, uiTileMap);
         blockTiles = new Dictionary<BlockColor, ITile>();
 
@@ -78,8 +73,8 @@ public class GameScene : Scene
         game.Start();
 
         currentBlockTileMap.Location = fieldTileMap.Location = (
-            320 / 2 - game.Width * 8 / 2f,
-            240 / 2 - game.Height * 8 / 2f - game.HeightOffset * 8
+            640 / 2 - game.Width * 16 / 2f,
+            480 / 2 - game.Height * 16 / 2f - game.HeightOffset * 16
             );
 
         Audio.Play(Resources.BgmTypeA, 0);
@@ -170,11 +165,11 @@ public class GameScene : Scene
 
         if (string.IsNullOrWhiteSpace(text)) return;
         
-        var effect = new EffectedTextElement(text, 18, DFFontStyle.Normal, Color.White)
+        var effect = new EffectedTextElement(text, 24, DFFontStyle.Normal, Color.White)
         {
             Effect = EffectedTextElement.EffectType.SlideUp,
             EffectTime = 1,
-            Location = (48, 160)
+            Location = holdPosition * 16 + (0, 96),
         };
         
         Root.Add(effect);
@@ -344,6 +339,7 @@ public class GameScene : Scene
     /// </summary>
     private void RenderWalls()
     {
+        var wallTile = blockTiles[BlockColor.Wall];
         // 縦
         for (var y = 0; y <= game.Height; y++)
         {
@@ -367,8 +363,6 @@ public class GameScene : Scene
         {
             blockTiles[type] = new Tile(texture);
         }
-
-        wallTile = new Tile(Resources.Wall);
     }
 
     /// <summary>
