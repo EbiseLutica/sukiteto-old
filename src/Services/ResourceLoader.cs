@@ -5,6 +5,8 @@ namespace Sukiteto;
 public class ResourceLoader
 {
     public Dictionary<BlockColor, Texture2D> Block { get; }
+    
+    public Texture2D Logo { get; } = Texture2D.LoadFrom("./assets/textures/logo.png");
 
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
     

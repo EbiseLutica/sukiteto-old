@@ -103,6 +103,11 @@ public class GameScene : Scene
         RenderCurrentBlock();
     }
 
+    public override void OnDestroy()
+    {
+        Audio.Stop();
+    }
+
     private void OnHold()
     {
         RenderHoldNext();
@@ -249,7 +254,7 @@ public class GameScene : Scene
         // リロード
         if (DFKeyboard.R.IsKeyDown)
         {
-            DF.Router.ChangeScene<GameScene>();
+            DF.Router.ChangeScene<TitleScene>();
         }
         
         // ホールド
@@ -265,8 +270,8 @@ public class GameScene : Scene
     private void ProcessGameOver()
     {
         Audio.Stop();
-        var gameoverText = new TextElement("GAME OVER", 32, DFFontStyle.Normal, Color.Red);
-        gameoverText.Location = (320 / 2 - gameoverText.Width / 2, 240 / 2 - gameoverText.Height / 2);
+        var gameoverText = new TextElement("GAME OVER", 64, DFFontStyle.Normal, Color.Red);
+        gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
         Audio.Play(Resources.SfxGameOver);
         Root.Add(gameoverText);
     }
