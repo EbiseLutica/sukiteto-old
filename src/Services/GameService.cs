@@ -584,6 +584,8 @@ public class GameService
         fixTimer = 0;
         BlockPosition = (Width / 2 - 2, HeightOffset - 3);
         BlockRotation = 0;
+        isTspin = false;
+        isTspinMini = false;
     }
 
     public event Action<LineClearEventArgs> LineClear;
