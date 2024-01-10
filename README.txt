@@ -1,3 +1,35 @@
+﻿SUKITETO
+============
+
+いわゆる積みゲー
+
+
+起動方法
+------------
+
+app/sukiteto.exe を実行
+
+
+操作方法
+------------
+
+Z: Rotate Left
+X: Rotate Right
+C: Hold
+← →: Move
+ESC: Back to Title
+
+
+使用ライブラリ
+---------------
+
+* DotFeather
+* .NET 8
+
+
+著作権表記
+--------------
+
 The MIT License (MIT)
 
 Copyright (c) 2023-2024 Ebise Lutica and GitHub contributors

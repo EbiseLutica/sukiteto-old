@@ -19,7 +19,7 @@ public class TitleScene : Scene
                                       "PRESS [Z] TO PLAY", DFFont.GetDefault(18), Color.White);
         keyHelp.Location = (DF.Window.Width / 2 - keyHelp.Width / 2, logo.Location.Y + logo.Height + 64);
         
-        var copyright = new TextElement($"(C)2023-2024 Ebise Lutica\nversion {Global.Version}", DFFont.GetDefault(14), Color.LightGray);
+        var copyright = new TextElement($"(C)2023-2024 Ebise Lutica and GitHub contributors\nversion {Global.Version}", DFFont.GetDefault(14), Color.LightGray);
         copyright.Location = (DF.Window.Width - copyright.Width - 2, DF.Window.Height - copyright.Height - 2);
 
         Root.AddRange(logo, keyHelp, copyright);
