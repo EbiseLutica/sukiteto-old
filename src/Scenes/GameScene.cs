@@ -111,7 +111,6 @@ public class GameScene : Scene
     private void OnHold()
     {
         RenderHoldNext();
-        Audio.PlayOneShotAsync(Resources.SfxHold);
     }
 
     private void OnSpawnNext()
@@ -185,16 +184,16 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessDas()
     {
-        if (Keys.KeyMoveLeft.IsKeyDown) game.TriggerLeft();
-        if (Keys.KeyMoveRight.IsKeyDown) game.TriggerRight();
+        var moved = false;
+        if (Keys.KeyMoveLeft.IsKeyDown) moved = game.TriggerLeft();
+        if (Keys.KeyMoveRight.IsKeyDown) moved = game.TriggerRight();
 
         if (Keys.KeyMoveLeft.ElapsedTime >= das)
         {
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
             {
-                game.TriggerLeft();
-                Audio.PlayOneShotAsync(Resources.SfxMove);
+                moved = game.TriggerLeft();
                 dasTimer = 0;
             }
         }
@@ -203,8 +202,7 @@ public class GameScene : Scene
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
             {
-                game.TriggerRight();
-                Audio.PlayOneShotAsync(Resources.SfxMove);
+                moved = game.TriggerRight();
                 dasTimer = 0;
             }
         }
@@ -214,8 +212,7 @@ public class GameScene : Scene
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
             {
-                game.TriggerDown();
-                Audio.PlayOneShotAsync(Resources.SfxMove);
+                moved = game.TriggerDown();
                 dasTimer = 0;
             }
         }
@@ -224,6 +221,8 @@ public class GameScene : Scene
         {
             dasTimer = 0;
         }
+        
+        if (moved) Audio.PlayOneShotAsync(Resources.SfxMove);
     }
 
     /// <summary>
@@ -238,16 +237,14 @@ public class GameScene : Scene
         }
 
         // 左回転
-        if (Keys.KeyRotateLeft.IsKeyDown)
+        if (Keys.KeyRotateLeft.IsKeyDown && game.TriggerRotateLeft())
         {
-            game.TriggerRotateLeft();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // 右回転
-        if (Keys.KeyRotateRight.IsKeyDown)
+        if (Keys.KeyRotateRight.IsKeyDown && game.TriggerRotateRight())
         {
-            game.TriggerRotateRight();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
@@ -258,9 +255,9 @@ public class GameScene : Scene
         }
         
         // ホールド
-        if (Keys.KeyHold.IsKeyDown)
+        if (Keys.KeyHold.IsKeyDown && game.TriggerHold())
         {
-            game.TriggerHold();
+            Audio.PlayOneShotAsync(Resources.SfxHold);
         }
     }
     

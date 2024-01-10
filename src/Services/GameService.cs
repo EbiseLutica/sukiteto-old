@@ -170,23 +170,29 @@ public class GameService
         isDroppingSoftly = false;
     }
 
-    public void TriggerLeft()
+    public bool TriggerLeft()
     {
-        if (!CanPlaceBlock(BlockPosition.X - 1, BlockPosition.Y, CurrentShape)) return;
+        if (!CanPlaceBlock(BlockPosition.X - 1, BlockPosition.Y, CurrentShape)) return false;
         BlockPosition += VectorInt.Left;;
+        
+        return true;
     }
     
-    public void TriggerRight()
+    public bool TriggerRight()
     {
-        if (!CanPlaceBlock(BlockPosition.X + 1, BlockPosition.Y, CurrentShape)) return;
+        if (!CanPlaceBlock(BlockPosition.X + 1, BlockPosition.Y, CurrentShape)) return false;
         BlockPosition += VectorInt.Right;
+        
+        return true;
     }
     
-    public void TriggerDown()
+    public bool TriggerDown()
     {
-        if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape)) return;
+        if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape)) return false;
         BlockPosition += VectorInt.Down;
         isDroppingSoftly = true;
+
+        return true;
     }
     
     public void TriggerHardDrop()
@@ -196,45 +202,51 @@ public class GameService
         fixTimer = graceTimeForFix;
     }
     
-    public void TriggerRotateLeft()
+    public bool TriggerRotateLeft()
     {
         var nextRotation = BlockRotation - 1;
         if (nextRotation < 0) nextRotation = 3;
         var kickValue = TryKick(nextRotation);
-        if (!kickValue.HasValue) return;
+        if (!kickValue.HasValue) return false;
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
         isTspin = CheckTspin(kickValue);
+
+        return true;
     }
     
-    public void TriggerRotateRight()
+    public bool TriggerRotateRight()
     {
         var nextRotation = BlockRotation + 1;
         if (nextRotation > 3) nextRotation = 0;
         var kickValue = TryKick(nextRotation);
-        if (!kickValue.HasValue) return;
+        if (!kickValue.HasValue) return false;
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
         ResetFix();
         isTspin = CheckTspin(kickValue);
+
+        return true;
     }
     
-    public void TriggerHold()
+    public bool TriggerHold()
     {
-        if (!CanHold) return;
+        if (!CanHold) return false;
         if (CurrentHold == BlockColor.None)
         {
             CurrentHold = CurrentBlockColor;
             SpawnNextBlock();
             Hold?.Invoke();
             CanHold = false;
-            return;
+            return true;
         }
         (CurrentHold, CurrentBlockColor) = (CurrentBlockColor, CurrentHold);
         CanHold = false;
         Hold?.Invoke();
         ResetStateForSpawning();
+
+        return true;
     }
 
     /// <summary>
