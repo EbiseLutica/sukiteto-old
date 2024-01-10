@@ -87,7 +87,7 @@ public class GameScene : Scene
 
         if (isGameOver)
         {
-            if (DFKeyboard.Z.IsKeyUp)
+            if (Keys.KeyOk.IsKeyUp)
             {
                 DF.Router.ChangeScene<TitleScene>();
             }
@@ -185,10 +185,10 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessDas()
     {
-        if (DFKeyboard.Left.IsKeyDown) game.TriggerLeft();
-        if (DFKeyboard.Right.IsKeyDown) game.TriggerRight();
+        if (Keys.KeyMoveLeft.IsKeyDown) game.TriggerLeft();
+        if (Keys.KeyMoveRight.IsKeyDown) game.TriggerRight();
 
-        if (DFKeyboard.Left.ElapsedTime >= das)
+        if (Keys.KeyMoveLeft.ElapsedTime >= das)
         {
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
@@ -198,7 +198,7 @@ public class GameScene : Scene
                 dasTimer = 0;
             }
         }
-        else if (DFKeyboard.Right.ElapsedTime >= das)
+        else if (Keys.KeyMoveRight.ElapsedTime >= das)
         {
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
@@ -209,7 +209,7 @@ public class GameScene : Scene
             }
         }
 
-        if (DFKeyboard.Down)
+        if (Keys.KeySoftDrop)
         {
             dasTimer += Time.DeltaTime;
             if (dasTimer > arr)
@@ -220,7 +220,7 @@ public class GameScene : Scene
             }
         }
         
-        if (!DFKeyboard.Left && !DFKeyboard.Right && !DFKeyboard.Down)
+        if (!Keys.KeyMoveLeft && !Keys.KeyMoveRight && !Keys.KeySoftDrop)
         {
             dasTimer = 0;
         }
@@ -231,34 +231,34 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessInput()
     {
-        if (DFKeyboard.Up.IsKeyDown)
+        if (Keys.KeyHardDrop.IsKeyDown)
         {
             game.TriggerHardDrop();
             Audio.PlayOneShotAsync(Resources.SfxHardDrop);
         }
 
         // 左回転
-        if (DFKeyboard.Z.IsKeyDown)
+        if (Keys.KeyRotateLeft.IsKeyDown)
         {
             game.TriggerRotateLeft();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // 右回転
-        if (DFKeyboard.X.IsKeyDown)
+        if (Keys.KeyRotateRight.IsKeyDown)
         {
             game.TriggerRotateRight();
             Audio.PlayOneShotAsync(Resources.SfxMove);
         }
         
         // リロード
-        if (DFKeyboard.R.IsKeyDown)
+        if (Keys.KeyQuit.IsKeyDown)
         {
             DF.Router.ChangeScene<TitleScene>();
         }
         
         // ホールド
-        if (DFKeyboard.C.IsKeyDown)
+        if (Keys.KeyHold.IsKeyDown)
         {
             game.TriggerHold();
         }

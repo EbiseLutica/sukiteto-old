@@ -27,7 +27,7 @@ public class TitleScene : Scene
 
     public override void OnUpdate()
     {
-        if (DFKeyboard.Z.IsKeyUp)
+        if (Global.Keys.KeyOk.IsKeyUp)
         {
             DF.Router.ChangeScene<GameScene>();
         }

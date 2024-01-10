@@ -9,4 +9,6 @@ DF.Window.Start += () =>
     Global.Initialize();
 };
 
-return DF.Run<TitleScene>();
+var status = DF.Run<TitleScene>();
+Global.Keys.Save();
+return status;
