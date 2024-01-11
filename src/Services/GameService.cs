@@ -299,7 +299,7 @@ public class GameService
             ResetFix();
         }
         
-        if (fixTimer < graceTimeForFix) return;
+        if (fixTimer < graceTimeForFix && fixResetCounter < fixResetMax) return;
         PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();
@@ -518,8 +518,7 @@ public class GameService
     /// </summary>
     private void ResetFix()
     {
-        if (fixResetCounter >= fixResetMax) return;
-        if (!(fixTimer > 0)) return;
+        if (fixTimer == 0) return;
         fixTimer = 0;
         fixResetCounter++;
     }
