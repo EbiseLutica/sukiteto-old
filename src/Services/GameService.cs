@@ -1,12 +1,10 @@
-﻿using DotFeather;
-using Silk.NET.SDL;
-using static Sukiteto.Global;
+﻿using Promete;
 
 namespace Sukiteto;
 
-public class GameService
+public class GameService(ShapeLoader shapes)
 {
-    public bool[,] CurrentShape => Shapes[CurrentBlockColor][BlockRotation];
+    public bool[,] CurrentShape => shapes[CurrentBlockColor][BlockRotation];
 
     /// <summary>
     /// フィールド
@@ -91,11 +89,6 @@ public class GameService
     /// Tspinされたかどうか
     /// </summary>
     private bool isTspin;
-    
-    /// <summary>
-    /// ラインクリア時に消えたラインのインデックスを格納するバッファ
-    /// </summary>
-    private readonly int[] clearedLineIndicesBuffer;
 
     /// <summary>
     /// TspinMiniかどうか
@@ -150,11 +143,6 @@ public class GameService
     
     private static readonly Random random = new();
 
-    public GameService()
-    {
-        clearedLineIndicesBuffer = new int[Height + HeightOffset];
-    }
-
     public void Start()
     {
         Field = new BlockColor[Width, Height + HeightOffset];
@@ -165,8 +153,8 @@ public class GameService
 
     public void Tick(float deltaTime)
     {
-        ProcessFreefall();
-        ProcessFix();
+        ProcessFreefall(deltaTime);
+        ProcessFix(deltaTime);
         isDroppingSoftly = false;
     }
 
@@ -266,11 +254,11 @@ public class GameService
     /// <summary>
     /// 自由落下の制御
     /// </summary>
-    private void ProcessFreefall()
+    private void ProcessFreefall(float deltaTime = 0)
     {
         if (fixTimer > 0) return;
 
-        freefallDistance += MathF.Min(FallSpeed * Time.DeltaTime, 20);
+        freefallDistance += MathF.Min(FallSpeed * deltaTime, 20);
         if (freefallDistance < 1) return;
 
         var distanceInt = (int)freefallDistance;
@@ -287,12 +275,12 @@ public class GameService
     /// <summary>
     /// ブロックが床に固定するまでの猶予時間の処理
     /// </summary>
-    private void ProcessFix()
+    private void ProcessFix(float deltaTime)
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape))
         {
             if (fixTimer == 0) BlockHit?.Invoke();
-            fixTimer += Time.DeltaTime;
+            fixTimer += deltaTime;
         }
         else if (fixTimer > 0)
         {
@@ -313,6 +301,7 @@ public class GameService
         var cleared = 0;
         var bottom = Height + HeightOffset - 1;
         var y2 = bottom + 1;
+        var clearedLineIndicesBuffer1 = new int[Height + HeightOffset];
         for (var y = bottom; y >= 0; y--)
         {
             y2--;
@@ -325,7 +314,7 @@ public class GameService
             }
 
             if (!isLineFilled) continue;
-            clearedLineIndicesBuffer[cleared] = y2;
+            clearedLineIndicesBuffer1[cleared] = y2;
             cleared++;
             ShiftDownField(y);
             y++;
@@ -336,7 +325,7 @@ public class GameService
             // TODO: 追加判定をスコアに加味する
             LineClear?.Invoke(new LineClearEventArgs()
             {
-                ClearedLineIndices = clearedLineIndicesBuffer.AsMemory(0, cleared),
+                ClearedLineIndices = clearedLineIndicesBuffer1.AsMemory(0, cleared),
                 IsTSpin = isTspin,
                 IsTSpinMini = isTspinMini,
             });
@@ -534,7 +523,7 @@ public class GameService
         var testCases = table[(BlockRotation, nextRotation)];
         foreach (var testCase in testCases)
         {
-            if (CanPlaceBlock(BlockPosition.X + testCase.X, BlockPosition.Y + testCase.Y, Shapes[CurrentBlockColor][nextRotation]))
+            if (CanPlaceBlock(BlockPosition.X + testCase.X, BlockPosition.Y + testCase.Y, shapes[CurrentBlockColor][nextRotation]))
             {
                 return testCase;
             }

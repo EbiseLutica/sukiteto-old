@@ -1,13 +1,26 @@
 using System.Collections;
 using System.Drawing;
 using System.Text;
-using DotFeather;
-
-using static Sukiteto.Global;
+using Promete;
+using Promete.Audio;
+using Promete.Elements;
+using Promete.Graphics;
+using Promete.Input;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
-public class GameScene : Scene
+public class GameScene(
+    PrometeApp app,
+    IWindow window,
+    AudioPlayer audio,
+    ConsoleLayer console,
+    GlyphRenderer glyphRenderer,
+    Resources resources,
+    KeyConfigService keys,
+    GameService game,
+    ShapeLoader shapes
+    ) : Scene
 {
     /// <summary>
     /// フィールドの表示に使うタイルマップ
@@ -37,8 +50,6 @@ public class GameScene : Scene
 
     private readonly VectorInt nextPosition = (27, 5);
 
-    private readonly GameService game = new();
-
     private bool isPausingGame = false;
 
     /// <summary>
@@ -51,7 +62,7 @@ public class GameScene : Scene
     /// </summary>
     private static readonly float arr = 1f / 60 * 2;
 
-    public override void OnStart(Dictionary<string, object> args)
+    public override void OnStart()
     {
         fieldTileMap = new Tilemap((16, 16));
         currentBlockTileMap = new Tilemap((16, 16));
@@ -77,19 +88,19 @@ public class GameScene : Scene
             480 / 2 - game.Height * 16 / 2f - game.HeightOffset * 16
             );
 
-        Audio.Play(Resources.BgmTypeA, 0);
+        audio.Play(resources.BgmTypeA, 0);
     }
 
     public override void OnUpdate()
     {
-        DF.Console.Cls();
-        DF.Console.Print($"{Time.Fps}fps");
+        console.Clear();
+        console.Print($"{window.FramePerSeconds}fps");
 
         if (isGameOver)
         {
-            if (Keys.KeyOk.IsKeyUp)
+            if (keys.KeyOk.IsKeyUp)
             {
-                DF.Router.ChangeScene<TitleScene>();
+                app.LoadScene<TitleScene>();
             }
 
             return;
@@ -98,14 +109,14 @@ public class GameScene : Scene
         if (isPausingGame) return;
         ProcessDas();
         ProcessInput();
-        game.Tick(Time.DeltaTime);
+        game.Tick(window.DeltaTime);
 
         RenderCurrentBlock();
     }
 
     public override void OnDestroy()
     {
-        Audio.Stop();
+        audio.Stop();
     }
 
     private void OnHold()
@@ -120,7 +131,7 @@ public class GameScene : Scene
 
     private void OnTspinRotate()
     {
-        Audio.PlayOneShotAsync(Resources.SfxTspinRotate);
+        audio.PlayOneShotAsync(resources.SfxTspinRotate);
     }
 
     private void OnGameOver()
@@ -136,14 +147,14 @@ public class GameScene : Scene
 
     private void OnBlockHit()
     {
-        Audio.PlayOneShotAsync(Resources.SfxHit);
+        audio.PlayOneShotAsync(resources.SfxHit);
     }
 
     private void OnLineClear(LineClearEventArgs e)
     {
-        Audio.PlayOneShotAsync(Resources.GetLineClearSound(e));
+        audio.PlayOneShotAsync(resources.GetLineClearSound(e));
         isPausingGame = true;
-        CoroutineRunner.Start(AnimateLineClear(e));
+        _ = AnimateLineClear(e);
 
         var builder = new StringBuilder();
 
@@ -169,7 +180,7 @@ public class GameScene : Scene
 
         if (string.IsNullOrWhiteSpace(text)) return;
         
-        var effect = new EffectedTextElement(text, 24, DFFontStyle.Normal, Color.White)
+        var effect = new EffectedTextElement(glyphRenderer, text, 24, FontStyle.Normal, Color.White)
         {
             Effect = EffectedTextElement.EffectType.SlideUp,
             EffectTime = 1,
@@ -185,21 +196,21 @@ public class GameScene : Scene
     private void ProcessDas()
     {
         var moved = false;
-        if (Keys.KeyMoveLeft.IsKeyDown) moved = game.TriggerLeft();
-        if (Keys.KeyMoveRight.IsKeyDown) moved = game.TriggerRight();
+        if (keys.KeyMoveLeft.IsKeyDown) moved = game.TriggerLeft();
+        if (keys.KeyMoveRight.IsKeyDown) moved = game.TriggerRight();
 
-        if (Keys.KeyMoveLeft.ElapsedTime >= das)
+        if (keys.KeyMoveLeft.ElapsedTime >= das)
         {
-            dasTimer += Time.DeltaTime;
+            dasTimer += window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerLeft();
                 dasTimer = 0;
             }
         }
-        else if (Keys.KeyMoveRight.ElapsedTime >= das)
+        else if (keys.KeyMoveRight.ElapsedTime >= das)
         {
-            dasTimer += Time.DeltaTime;
+            dasTimer += window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerRight();
@@ -207,9 +218,9 @@ public class GameScene : Scene
             }
         }
 
-        if (Keys.KeySoftDrop)
+        if (keys.KeySoftDrop)
         {
-            dasTimer += Time.DeltaTime;
+            dasTimer += window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerDown();
@@ -217,12 +228,12 @@ public class GameScene : Scene
             }
         }
         
-        if (!Keys.KeyMoveLeft && !Keys.KeyMoveRight && !Keys.KeySoftDrop)
+        if (!keys.KeyMoveLeft && !keys.KeyMoveRight && !keys.KeySoftDrop)
         {
             dasTimer = 0;
         }
         
-        if (moved) Audio.PlayOneShotAsync(Resources.SfxMove);
+        if (moved) audio.PlayOneShotAsync(resources.SfxMove);
     }
 
     /// <summary>
@@ -230,34 +241,34 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessInput()
     {
-        if (Keys.KeyHardDrop.IsKeyDown)
+        if (keys.KeyHardDrop.IsKeyDown)
         {
             game.TriggerHardDrop();
-            Audio.PlayOneShotAsync(Resources.SfxHardDrop);
+            audio.PlayOneShotAsync(resources.SfxHardDrop);
         }
 
         // 左回転
-        if (Keys.KeyRotateLeft.IsKeyDown && game.TriggerRotateLeft())
+        if (keys.KeyRotateLeft.IsKeyDown && game.TriggerRotateLeft())
         {
-            Audio.PlayOneShotAsync(Resources.SfxMove);
+            audio.PlayOneShotAsync(resources.SfxMove);
         }
         
         // 右回転
-        if (Keys.KeyRotateRight.IsKeyDown && game.TriggerRotateRight())
+        if (keys.KeyRotateRight.IsKeyDown && game.TriggerRotateRight())
         {
-            Audio.PlayOneShotAsync(Resources.SfxMove);
+            audio.PlayOneShotAsync(resources.SfxMove);
         }
         
         // リロード
-        if (Keys.KeyQuit.IsKeyDown)
+        if (keys.KeyQuit.IsKeyDown)
         {
-            DF.Router.ChangeScene<TitleScene>();
+            app.LoadScene<TitleScene>();
         }
         
         // ホールド
-        if (Keys.KeyHold.IsKeyDown && game.TriggerHold())
+        if (keys.KeyHold.IsKeyDown && game.TriggerHold())
         {
-            Audio.PlayOneShotAsync(Resources.SfxHold);
+            audio.PlayOneShotAsync(resources.SfxHold);
         }
     }
     
@@ -266,10 +277,10 @@ public class GameScene : Scene
     /// </summary>
     private void ProcessGameOver()
     {
-        Audio.Stop();
-        var gameoverText = new TextElement("GAME OVER", 64, DFFontStyle.Normal, Color.Red);
+        audio.Stop();
+        var gameoverText = new Text(glyphRenderer, "GAME OVER", Font.GetDefault(64, FontStyle.Normal), Color.Red);
         gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
-        Audio.Play(Resources.SfxGameOver);
+        audio.Play(resources.SfxGameOver);
         Root.Add(gameoverText);
     }
 
@@ -297,22 +308,27 @@ public class GameScene : Scene
         RenderBlockToTilemap(pos.X, pos.Y, game.CurrentShape, game.CurrentBlockColor, currentBlockTileMap);
     }
     
-    private IEnumerator AnimateLineClear(LineClearEventArgs e)
+    private async Task AnimateLineClear(LineClearEventArgs e)
     {
         isPausingGame = true;
-        var span = e.ClearedLineIndices.Span;
-        for (var i = 0; i < span.Length; i++)
-        {
-            var y = span[i];
-            for (var x = 0; x < game.Width; x++)
-            {
-                fieldTileMap[x, y] = null;
-            }
-        }
-        yield return new WaitForSeconds(0.5f);
-        Audio.PlayOneShotAsync(Resources.SfxLineClearFix);
+        ProcessLine();
+        await Task.Delay(500);
+        audio.PlayOneShotAsync(resources.SfxLineClearFix);
         RenderField();
         isPausingGame = false;
+        return;
+
+        void ProcessLine()
+        {
+            var span = e.ClearedLineIndices.Span;
+            foreach (var y in span)
+            {
+                for (var x = 0; x < game.Width; x++)
+                {
+                    fieldTileMap[x, y] = null;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -361,7 +377,7 @@ public class GameScene : Scene
     /// </summary>
     private void InitializeTiles()
     {
-        foreach (var (type, texture) in Resources.Block)
+        foreach (var (type, texture) in resources.Block)
         {
             blockTiles[type] = new Tile(texture);
         }
@@ -375,13 +391,13 @@ public class GameScene : Scene
         uiTileMap.Clear();
         if (game.CurrentHold != BlockColor.None)
         {
-            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, Shapes[game.CurrentHold][0], game.CanHold ? game.CurrentHold : BlockColor.Ghost, uiTileMap);
+            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, shapes[game.CurrentHold][0], game.CanHold ? game.CurrentHold : BlockColor.Ghost, uiTileMap);
         }
 
         var i = 0;
         foreach (var type in game.NextQueue.Take(4))
         {
-            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, Shapes[type][0], type, uiTileMap);
+            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, shapes[type][0], type, uiTileMap);
             i++;
         }
     }

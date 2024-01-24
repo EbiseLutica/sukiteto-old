@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using DotFeather;
+using Promete.Input;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
@@ -8,52 +9,49 @@ public class KeyConfigService
 {
     private static readonly string jsonFilePath = "keyconfig.json";
 
-    public DFKeyCode MoveLeft { get; set; } = DFKeyCode.Left;
-    public DFKeyCode MoveRight { get; set; } = DFKeyCode.Right;
-    public DFKeyCode RotateLeft { get; set; } = DFKeyCode.Z;
-    public DFKeyCode RotateRight { get; set; } = DFKeyCode.X;
-    public DFKeyCode SoftDrop { get; set; } = DFKeyCode.Down;
-    public DFKeyCode HardDrop { get; set; } = DFKeyCode.Up;
-    public DFKeyCode Hold { get; set; } = DFKeyCode.C;
+    [JsonIgnore]
+    public Key KeyMoveLeft => _keyboard.KeyOf(_keyConfig.MoveLeft);
+    [JsonIgnore]
+    public Key KeyMoveRight => _keyboard.KeyOf(_keyConfig.MoveRight);
+    [JsonIgnore]
+    public Key KeyRotateLeft => _keyboard.KeyOf(_keyConfig.RotateLeft);
+    [JsonIgnore]
+    public Key KeyRotateRight => _keyboard.KeyOf(_keyConfig.RotateRight);
+    [JsonIgnore]
+    public Key KeySoftDrop => _keyboard.KeyOf(_keyConfig.SoftDrop);
+    [JsonIgnore]
+    public Key KeyHardDrop => _keyboard.KeyOf(_keyConfig.HardDrop);
+    [JsonIgnore]
+    public Key KeyHold => _keyboard.KeyOf(_keyConfig.Hold);
+    [JsonIgnore]
+    public Key KeyPause => _keyboard.KeyOf(_keyConfig.Pause);
+    [JsonIgnore]
+    public Key KeyQuit => _keyboard.KeyOf(_keyConfig.Quit);
+    [JsonIgnore]
+    public Key KeyOk => _keyboard.KeyOf(_keyConfig.Ok);
 
-    public DFKeyCode Pause { get; set; } = DFKeyCode.Enter;
-    
-    public DFKeyCode Quit { get; set; } = DFKeyCode.Escape;
-    
-    public DFKeyCode Ok { get; set; } = DFKeyCode.Z;
+    private readonly Keyboard _keyboard;
+    private readonly KeyConfig _keyConfig;
 
-    [JsonIgnore]
-    public DFKey KeyMoveLeft => DFKeyboard.KeyOf(MoveLeft);
-    [JsonIgnore]
-    public DFKey KeyMoveRight => DFKeyboard.KeyOf(MoveRight);
-    [JsonIgnore]
-    public DFKey KeyRotateLeft => DFKeyboard.KeyOf(RotateLeft);
-    [JsonIgnore]
-    public DFKey KeyRotateRight => DFKeyboard.KeyOf(RotateRight);
-    [JsonIgnore]
-    public DFKey KeySoftDrop => DFKeyboard.KeyOf(SoftDrop);
-    [JsonIgnore]
-    public DFKey KeyHardDrop => DFKeyboard.KeyOf(HardDrop);
-    [JsonIgnore]
-    public DFKey KeyHold => DFKeyboard.KeyOf(Hold);
-    [JsonIgnore]
-    public DFKey KeyPause => DFKeyboard.KeyOf(Pause);
-    [JsonIgnore]
-    public DFKey KeyQuit => DFKeyboard.KeyOf(Quit);
-    [JsonIgnore]
-    public DFKey KeyOk => DFKeyboard.KeyOf(Ok);
-
-    public static KeyConfigService Load()
+    public KeyConfigService(Keyboard keyboard, IWindow window)
     {
-        if (!File.Exists(jsonFilePath)) return new KeyConfigService();
+        _keyboard = keyboard;
+        _keyConfig = Load();
+
+        window.Destroy += Save;
+    }
+
+    private KeyConfig Load()
+    {
+        if (!File.Exists(jsonFilePath)) return new KeyConfig();
 
         var json = File.ReadAllText(jsonFilePath);
-        return JsonSerializer.Deserialize<KeyConfigService>(json) ?? new KeyConfigService();
+        return JsonSerializer.Deserialize<KeyConfig>(json) ?? new KeyConfig();
     }
     
     public void Save()
     {
-        var json = JsonSerializer.Serialize(this);
+        var json = JsonSerializer.Serialize(_keyConfig);
         File.WriteAllText(jsonFilePath, json);
     }
 }

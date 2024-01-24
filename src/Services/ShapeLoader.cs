@@ -1,5 +1,3 @@
-using Sukiteto;
-
 namespace Sukiteto;
 
 public class ShapeLoader
