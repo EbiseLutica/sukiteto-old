@@ -188,6 +188,7 @@ public class GameService(ShapeLoader shapes)
         var y = RayToDown();
         BlockPosition = (BlockPosition.X, (int)y);
         fixTimer = graceTimeForFix;
+        ProcessFix(0);
     }
     
     public bool TriggerRotateLeft()
