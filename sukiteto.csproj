@@ -27,9 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="assets\textures\wall.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="assets\textures\shapes.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
