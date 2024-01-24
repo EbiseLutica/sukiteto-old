@@ -1,14 +1,17 @@
-﻿using DotFeather;
+﻿using Promete;
+using Promete.Audio;
+using Promete.GLDesktop;
+using Promete.Input;
 using Sukiteto;
 
-DF.Window.Start += () =>
-{
-    DF.Window.Title = "Sukiteto";
-    DF.Window.Size = (640, 480);
-    
-    Global.Initialize();
-};
+var app = PrometeApp.Create()
+    .Use<Keyboard>()
+    .Use<ConsoleLayer>()
+    .Use<KeyConfigService>()
+    .Use<AudioPlayer>()
+    .Use<Resources>()
+    .Use<ShapeLoader>()
+    .Use<GameService>()
+    .BuildWithOpenGLDesktop();
 
-var status = DF.Run<TitleScene>();
-Global.Keys.Save();
-return status;
+return app.Run<TitleScene>();

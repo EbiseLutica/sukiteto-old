@@ -1,12 +1,14 @@
-using DotFeather;
+using Promete.Audio;
+using Promete.Graphics;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
-public class ResourceLoader
+public class Resources
 {
-    public Dictionary<BlockColor, Texture2D> Block { get; }
+    public Dictionary<BlockColor, ITexture> Block { get; }
     
-    public Texture2D Logo { get; } = Texture2D.LoadFrom("./assets/textures/logo.png");
+    public ITexture Logo { get; }
 
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
     
@@ -24,10 +26,14 @@ public class ResourceLoader
     public IAudioSource SfxGameOver { get; } = new WaveAudioSource("./assets/sounds/gameover.wav");
     public IAudioSource SfxTspinRotate { get; } = new WaveAudioSource("./assets/sounds/tspin_rotate.wav");
 
-    public ResourceLoader()
+    private IWindow _window;
+
+    public Resources(IWindow window)
     {
-        var minos = Texture2D.LoadAndSplitFrom("./assets/textures/shapes.png", 9, 1, (16, 16));
-        Block = new Dictionary<BlockColor, Texture2D>
+        _window = window;
+        Logo = _window.TextureFactory.Load("./assets/textures/logo.png");
+        var minos = _window.TextureFactory.LoadSpriteSheet("./assets/textures/shapes.png", 9, 1, (16, 16));
+        Block = new Dictionary<BlockColor, ITexture>
         {
             [BlockColor.O] = minos[0],
             [BlockColor.J] = minos[1],

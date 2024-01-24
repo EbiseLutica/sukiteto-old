@@ -1,50 +1,33 @@
 ﻿using System.Drawing;
-using DotFeather;
+using Promete;
+using Promete.Elements;
+using Promete.Graphics;
 
 namespace Sukiteto;
 
-public class EffectedTextElement : TextElement
+public class EffectedTextElement(
+    GlyphRenderer glyphRenderer,
+    string text,
+    float fontSize,
+    FontStyle fontStyle,
+    Color? color)
+    : Text(glyphRenderer, text, Promete.Graphics.Font.GetDefault(fontSize, fontStyle), color)
 {
     public EffectType Effect { get; set; }
     public float EffectTime { get; set; }
 
     private float timer;
 
-    public EffectedTextElement()
-    {
-    }
-
-    public EffectedTextElement(string text) : base(text)
-    {
-    }
-
-    public EffectedTextElement(string text, DFFont font) : base(text, font)
-    {
-    }
-
-    public EffectedTextElement(string text, DFFont font, Color? color) : base(text, font, color)
-    {
-    }
-
-    public EffectedTextElement(string text, float fontSize) : base(text, fontSize)
-    {
-    }
-
-    public EffectedTextElement(string text, float fontSize, DFFontStyle fontStyle) : base(text, fontSize, fontStyle)
-    {
-    }
-
-    public EffectedTextElement(string text, float fontSize, DFFontStyle fontStyle, Color? color) : base(text, fontSize, fontStyle, color)
-    {
-    }
 
     protected override void OnUpdate()
     {
-        timer += Time.DeltaTime;
+        // TODO deltaTimeをなんとかして取得する
+        var deltaTime = (1 / 60f);
+        timer += deltaTime;
         
         if (timer > EffectTime)
         {
-            Parent.Remove(this);
+            Parent?.Remove(this);
             Destroy();
             return;
         }
@@ -54,10 +37,10 @@ public class EffectedTextElement : TextElement
         switch (Effect)
         {
             case EffectType.SlideUp:
-                Location += Vector.Up * (12 * Time.DeltaTime);
+                Location += Vector.Up * (12 * deltaTime);
                 break;
             case EffectType.ScaleUp:
-                Scale *= 1.4f * Time.DeltaTime;
+                Scale *= 1.4f * deltaTime;
                 break;
         }
 

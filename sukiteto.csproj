@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AssemblyName>Sukiteto</AssemblyName>
     <RootNamespace>Sukiteto</RootNamespace>
-    <LangVersion>11</LangVersion>
+    <LangVersion>12</LangVersion>
     <Title>SUKITETO</Title>
     <Authors>Ebise Lutica</Authors>
     <Description>A Stacker Game</Description>
@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotFeather" Version="3.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Promete" Version="0.1.1-build-325000" />
   </ItemGroup>
 
   <ItemGroup>
