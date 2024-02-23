@@ -6,8 +6,10 @@ using Sukiteto;
 
 var app = PrometeApp.Create()
     .Use<Keyboard>()
+    .Use<Mouse>()
+    .Use<Gamepads>()
     .Use<ConsoleLayer>()
-    .Use<KeyConfigService>()
+    .Use<InputService>()
     .Use<AudioPlayer>()
     .Use<Resources>()
     .Use<ShapeLoader>()

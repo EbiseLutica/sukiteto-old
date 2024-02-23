@@ -17,7 +17,7 @@ public class GameScene(
     ConsoleLayer console,
     GlyphRenderer glyphRenderer,
     Resources resources,
-    KeyConfigService keys,
+    InputService input,
     GameService game,
     ShapeLoader shapes
     ) : Scene
@@ -88,6 +88,7 @@ public class GameScene(
             480 / 2 - game.Height * 16 / 2f - game.HeightOffset * 16
             );
 
+        audio.Gain = 0.4f;
         audio.Play(resources.BgmTypeA, 0);
     }
 
@@ -98,7 +99,7 @@ public class GameScene(
 
         if (isGameOver)
         {
-            if (keys.KeyOk.IsKeyUp)
+            if (input[InputType.Ok].IsButtonUp)
             {
                 app.LoadScene<TitleScene>();
             }
@@ -180,9 +181,9 @@ public class GameScene(
 
         if (string.IsNullOrWhiteSpace(text)) return;
         
-        var effect = new EffectedTextElement(glyphRenderer, text, 24, FontStyle.Normal, Color.White)
+        var effect = new EffectedText(text, 24, FontStyle.Normal, Color.White)
         {
-            Effect = EffectedTextElement.EffectType.SlideUp,
+            Effect = EffectedText.EffectType.SlideUp,
             EffectTime = 1,
             Location = holdPosition * 16 + (0, 96),
         };
@@ -196,10 +197,10 @@ public class GameScene(
     private void ProcessDas()
     {
         var moved = false;
-        if (keys.KeyMoveLeft.IsKeyDown) moved = game.TriggerLeft();
-        if (keys.KeyMoveRight.IsKeyDown) moved = game.TriggerRight();
+        if (input[InputType.MoveLeft].IsButtonDown) moved = game.TriggerLeft();
+        if (input[InputType.MoveRight].IsButtonDown) moved = game.TriggerRight();
 
-        if (keys.KeyMoveLeft.ElapsedTime >= das)
+        if (input[InputType.MoveLeft].ElapsedTime >= das)
         {
             dasTimer += window.DeltaTime;
             if (dasTimer > arr)
@@ -208,7 +209,7 @@ public class GameScene(
                 dasTimer = 0;
             }
         }
-        else if (keys.KeyMoveRight.ElapsedTime >= das)
+        else if (input[InputType.MoveRight].ElapsedTime >= das)
         {
             dasTimer += window.DeltaTime;
             if (dasTimer > arr)
@@ -218,7 +219,7 @@ public class GameScene(
             }
         }
 
-        if (keys.KeySoftDrop)
+        if (input[InputType.SoftDrop])
         {
             dasTimer += window.DeltaTime;
             if (dasTimer > arr)
@@ -228,7 +229,7 @@ public class GameScene(
             }
         }
         
-        if (!keys.KeyMoveLeft && !keys.KeyMoveRight && !keys.KeySoftDrop)
+        if (!input[InputType.MoveLeft] && !input[InputType.MoveRight] && !input[InputType.SoftDrop])
         {
             dasTimer = 0;
         }
@@ -241,32 +242,32 @@ public class GameScene(
     /// </summary>
     private void ProcessInput()
     {
-        if (keys.KeyHardDrop.IsKeyDown)
+        if (input[InputType.HardDrop].IsButtonDown)
         {
             game.TriggerHardDrop();
             audio.PlayOneShotAsync(resources.SfxHardDrop);
         }
 
         // 左回転
-        if (keys.KeyRotateLeft.IsKeyDown && game.TriggerRotateLeft())
+        if (input[InputType.RotateLeft].IsButtonDown && game.TriggerRotateLeft())
         {
             audio.PlayOneShotAsync(resources.SfxMove);
         }
         
         // 右回転
-        if (keys.KeyRotateRight.IsKeyDown && game.TriggerRotateRight())
+        if (input[InputType.RotateRight].IsButtonDown && game.TriggerRotateRight())
         {
             audio.PlayOneShotAsync(resources.SfxMove);
         }
         
         // リロード
-        if (keys.KeyQuit.IsKeyDown)
+        if (input[InputType.Quit].IsButtonDown)
         {
             app.LoadScene<TitleScene>();
         }
         
         // ホールド
-        if (keys.KeyHold.IsKeyDown && game.TriggerHold())
+        if (input[InputType.Hold].IsButtonDown && game.TriggerHold())
         {
             audio.PlayOneShotAsync(resources.SfxHold);
         }
@@ -278,7 +279,7 @@ public class GameScene(
     private void ProcessGameOver()
     {
         audio.Stop();
-        var gameoverText = new Text(glyphRenderer, "GAME OVER", Font.GetDefault(64, FontStyle.Normal), Color.Red);
+        var gameoverText = new Text("GAME OVER", Font.GetDefault(64, FontStyle.Normal), Color.Red);
         gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
         audio.Play(resources.SfxGameOver);
         Root.Add(gameoverText);

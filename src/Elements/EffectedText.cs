@@ -5,19 +5,17 @@ using Promete.Graphics;
 
 namespace Sukiteto;
 
-public class EffectedTextElement(
-    GlyphRenderer glyphRenderer,
+public class EffectedText(
     string text,
     float fontSize,
     FontStyle fontStyle,
     Color? color)
-    : Text(glyphRenderer, text, Promete.Graphics.Font.GetDefault(fontSize, fontStyle), color)
+    : Text(text, Font.GetDefault(fontSize, fontStyle), color)
 {
     public EffectType Effect { get; set; }
     public float EffectTime { get; set; }
 
     private float timer;
-
 
     protected override void OnUpdate()
     {
@@ -27,7 +25,8 @@ public class EffectedTextElement(
         
         if (timer > EffectTime)
         {
-            Parent?.Remove(this);
+            // TODO Destroy() で消えるようにPrometeを改良する
+            (Parent as Container)?.Remove(this);
             Destroy();
             return;
         }
