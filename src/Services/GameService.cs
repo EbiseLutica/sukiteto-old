@@ -63,8 +63,11 @@ public class GameService(ShapeLoader shapes)
     /// <summary>
     /// 固定までの猶予時間（単位は時間）
     /// </summary>
-    public float graceTimeForFix { get; set; } = 0.5f;
     public float GraceTimeForFix { get; set; } = 0.5f;
+    
+    public string? CustomMapString { get; set; }
+    
+    public BlockColor[]? WhitelistedBlocks { get; set; }
 
     /// <summary>
     /// 自由落下のタイマー
@@ -146,7 +149,42 @@ public class GameService(ShapeLoader shapes)
 
     public void Start()
     {
-        Field = new BlockColor[Width, Height + HeightOffset];
+        if (CustomMapString == null)
+        {
+            Field = new BlockColor[Width, Height + HeightOffset];
+        }
+        else
+        {
+            var mapLines = CustomMapString.Split('\n');
+            var height = mapLines.Length;
+            var width = mapLines.Max(line => line.Length);
+            Field = new BlockColor[width, height + HeightOffset];
+
+            for (var y = 0; y < mapLines.Length; y++)
+            {
+                for (var x = 0; x < mapLines[y].Length; x++)
+                {
+                    Field[x, y + HeightOffset] = mapLines[y][x] switch
+                    {
+                        'I' => BlockColor.I,
+                        'J' => BlockColor.J,
+                        'L' => BlockColor.L,
+                        'O' => BlockColor.O,
+                        'S' => BlockColor.S,
+                        'T' => BlockColor.T,
+                        'Z' => BlockColor.Z,
+                        'W' => BlockColor.Wall,
+                        'G' => BlockColor.Ghost,
+                        _ => BlockColor.None
+                    };
+                }
+            }
+
+            if (WhitelistedBlocks != null)
+            {
+                allBlocks = WhitelistedBlocks;
+            }
+        }
 
         EnqueueNexts();
         SpawnNextBlock();
@@ -259,11 +297,18 @@ public class GameService(ShapeLoader shapes)
     {
         if (fixTimer > 0) return;
 
+        var currentTop = RayToDown();
+
         freefallDistance += MathF.Min(FallSpeed * deltaTime, 20);
         if (freefallDistance < 1) return;
 
         var distanceInt = (int)freefallDistance;
         BlockPosition += (0, distanceInt);
+        if (BlockPosition.Y > currentTop)
+        {
+            BlockPosition = (BlockPosition.X, currentTop);
+        }
+
         freefallDistance -= distanceInt;
         
         // 床判定
@@ -288,8 +333,8 @@ public class GameService(ShapeLoader shapes)
             ResetFix();
         }
         
-        if (fixTimer < graceTimeForFix && fixResetCounter < fixResetMax) return;
         if (fixTimer < GraceTimeForFix && fixResetCounter < fixResetMax) return;
+        BlockPosition = (BlockPosition.X, RayToDown());
         PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();

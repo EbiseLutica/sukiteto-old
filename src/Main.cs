@@ -13,7 +13,6 @@ var app = PrometeApp.Create()
     .Use<AudioPlayer>()
     .Use<Resources>()
     .Use<ShapeLoader>()
-    .Use<GameService>()
     .BuildWithOpenGLDesktop();
 
 return app.Run<TitleScene>();

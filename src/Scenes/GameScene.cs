@@ -44,6 +44,8 @@ public class GameScene(
     
     private float dasTimer;
 
+    private bool isPausingGame = false;
+
     private readonly VectorInt holdPosition = (9, 5);
 
     private readonly VectorInt nextPosition = (27, 5);
@@ -80,21 +82,19 @@ public class GameScene(
         RenderWalls();
 
         game.Start();
+        RenderField();
 
         currentBlockTileMap.Location = fieldTileMap.Location = (
             640 / 2 - game.Width * 16 / 2f,
             480 / 2 - game.Height * 16 / 2f - game.HeightOffset * 16
             );
 
-        audio.Gain = 0.4f;
+        audio.Gain = 0.1f;
         audio.Play(resources.BgmTypeA, 0);
     }
 
     public override void OnUpdate()
     {
-        console.Clear();
-        console.Print($"{window.FramePerSeconds}fps");
-
         if (isGameOver)
         {
             if (input[InputType.Ok].IsButtonUp)
@@ -161,7 +161,7 @@ public class GameScene(
 
         switch (e.ClearedLines)
         {
-            case 4:
+            case >= 4:
                 builder.AppendLine("QUAD");
                 break;
             case 3:
