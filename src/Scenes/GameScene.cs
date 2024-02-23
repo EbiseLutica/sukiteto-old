@@ -15,10 +15,8 @@ public class GameScene(
     IWindow window,
     AudioPlayer audio,
     ConsoleLayer console,
-    GlyphRenderer glyphRenderer,
     Resources resources,
     InputService input,
-    GameService game,
     ShapeLoader shapes
     ) : Scene
 {
@@ -50,7 +48,7 @@ public class GameScene(
 
     private readonly VectorInt nextPosition = (27, 5);
 
-    private bool isPausingGame = false;
+    private readonly GameService game = new(shapes);
 
     /// <summary>
     /// 長押ししてからブロックが動き始めるまでの時間
@@ -69,7 +67,7 @@ public class GameScene(
         uiTileMap = new Tilemap((16, 16));
         Root.AddRange(fieldTileMap, currentBlockTileMap, uiTileMap);
         blockTiles = new Dictionary<BlockColor, ITile>();
-
+        
         game.Hold += OnHold;
         game.SpawnNext += OnSpawnNext;
         game.LineClear += OnLineClear;

@@ -64,6 +64,7 @@ public class GameService(ShapeLoader shapes)
     /// 固定までの猶予時間（単位は時間）
     /// </summary>
     public float graceTimeForFix { get; set; } = 0.5f;
+    public float GraceTimeForFix { get; set; } = 0.5f;
 
     /// <summary>
     /// 自由落下のタイマー
@@ -95,8 +96,8 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private bool isTspinMini;
 
-    private static readonly BlockColor[] allBlocks =
-    {
+    private BlockColor[] allBlocks =
+    [
         BlockColor.I,
         BlockColor.J,
         BlockColor.L,
@@ -104,7 +105,7 @@ public class GameService(ShapeLoader shapes)
         BlockColor.S,
         BlockColor.T,
         BlockColor.Z
-    };
+    ];
 
     /// <summary>
     /// 固定猶予リセットの最大数（置くかホールドでリセットする）
@@ -116,14 +117,14 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private static readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTable = new()
     {
-        [(0, 1)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2) },
-        [(1, 0)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2) },
-        [(1, 2)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2) },
-        [(2, 1)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2) },
-        [(2, 3)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2) },
-        [(3, 2)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2) },
-        [(3, 0)] = new VectorInt[]{ (0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2) },
-        [(0, 3)] = new VectorInt[]{ (0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2) },
+        [(0, 1)] = [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
+        [(1, 0)] = [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
+        [(1, 2)] = [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
+        [(2, 1)] = [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
+        [(2, 3)] = [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
+        [(3, 2)] = [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
+        [(3, 0)] = [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
+        [(0, 3)] = [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
     };
 
     /// <summary>
@@ -131,14 +132,14 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private static readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTableI = new()
     {
-        [(0, 1)] = new VectorInt[]{ (0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2) },
-        [(1, 0)] = new VectorInt[]{ (0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2) },
-        [(1, 2)] = new VectorInt[]{ (0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1) },
-        [(2, 1)] = new VectorInt[]{ (0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1) },
-        [(2, 3)] = new VectorInt[]{ (0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2) },
-        [(3, 2)] = new VectorInt[]{ (0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2) },
-        [(3, 0)] = new VectorInt[]{ (0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1) },
-        [(0, 3)] = new VectorInt[]{ (0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1) },
+        [(0, 1)] = [(0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)],
+        [(1, 0)] = [(0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)],
+        [(1, 2)] = [(0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)],
+        [(2, 1)] = [(0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)],
+        [(2, 3)] = [(0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)],
+        [(3, 2)] = [(0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)],
+        [(3, 0)] = [(0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)],
+        [(0, 3)] = [(0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)],
     };
     
     private static readonly Random random = new();
@@ -185,9 +186,8 @@ public class GameService(ShapeLoader shapes)
     
     public void TriggerHardDrop()
     {
-        var y = RayToDown();
-        BlockPosition = (BlockPosition.X, (int)y);
-        fixTimer = graceTimeForFix;
+        BlockPosition = (BlockPosition.X, RayToDown());
+        fixTimer = GraceTimeForFix;
         ProcessFix(0);
     }
     
@@ -289,6 +289,7 @@ public class GameService(ShapeLoader shapes)
         }
         
         if (fixTimer < graceTimeForFix && fixResetCounter < fixResetMax) return;
+        if (fixTimer < GraceTimeForFix && fixResetCounter < fixResetMax) return;
         PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
         SpawnNextBlock();
