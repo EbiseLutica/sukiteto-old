@@ -13,8 +13,7 @@ namespace Sukiteto;
 public class GameScene(
     AudioPlayer audio,
     Resources resources,
-    InputService input,
-    ShapeLoader shapes
+    InputService input
     ) : Scene
 {
     /// <summary>
@@ -47,7 +46,7 @@ public class GameScene(
 
     private readonly VectorInt nextPosition = (27, 5);
 
-    private readonly GameService game = new(shapes);
+    private readonly GameService game = new(GameConfig.Default);
 
     /// <summary>
     /// 長押ししてからブロックが動き始めるまでの時間
@@ -82,8 +81,8 @@ public class GameScene(
         RenderField();
 
         currentBlockTileMap.Location = fieldTileMap.Location = (
-            640 / 2 - game.Width * 16 / 2f,
-            480 / 2 - game.Height * 16 / 2f - game.HeightOffset * 16
+            640 / 2 - game.Config.FieldSize.X * 16 / 2f,
+            480 / 2 - game.Config.FieldSize.Y * 16 / 2f - game.Config.TopMargin * 16
             );
 
         audio.Gain = 0.1f;
@@ -285,9 +284,10 @@ public class GameScene(
     /// </summary>
     private void RenderField()
     {
-        for (var x = 0; x < game.Width; x++)
+        var config = game.Config;
+        for (var x = 0; x < config.FieldSize.X; x++)
         {
-            for (var y = 0; y < game.Height + game.HeightOffset; y++)
+            for (var y = 0; y < config.FieldSize.Y + config.TopMargin; y++)
             {
                 fieldTileMap[x, y] = game.Field[x, y] == BlockColor.None ? null : blockTiles[game.Field[x, y]];
             }
@@ -319,7 +319,7 @@ public class GameScene(
             var span = e.ClearedLineIndices.Span;
             foreach (var y in span)
             {
-                for (var x = 0; x < game.Width; x++)
+                for (var x = 0; x < game.Config.FieldSize.X; x++)
                 {
                     fieldTileMap[x, y] = null;
                 }
@@ -354,17 +354,18 @@ public class GameScene(
     private void RenderWalls()
     {
         var wallTile = blockTiles[BlockColor.Wall];
+        var (width, height) = game.Config.FieldSize;
         // 縦
-        for (var y = 0; y <= game.Height; y++)
+        for (var y = 0; y <= height; y++)
         {
-            fieldTileMap[-1, y + game.HeightOffset] = wallTile;
-            fieldTileMap[game.Width, y + game.HeightOffset] = wallTile;
+            fieldTileMap[-1, y + game.Config.TopMargin] = wallTile;
+            fieldTileMap[width, y + game.Config.TopMargin] = wallTile;
         }
         
         // 横
-        for (var x = 0; x < game.Width; x++)
+        for (var x = 0; x < width; x++)
         {
-            fieldTileMap[x, game.Height + game.HeightOffset] = wallTile;
+            fieldTileMap[x, height + game.Config.TopMargin] = wallTile;
         }
     }
 
@@ -387,13 +388,13 @@ public class GameScene(
         uiTileMap.Clear();
         if (game.CurrentHold != BlockColor.None)
         {
-            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, shapes[game.CurrentHold][0], game.CanHold ? game.CurrentHold : BlockColor.Ghost, uiTileMap);
+            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, game.Shapes[game.CurrentHold][0], !game.UsedHold ? game.CurrentHold : BlockColor.Ghost, uiTileMap);
         }
 
         var i = 0;
         foreach (var type in game.NextQueue.Take(4))
         {
-            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, shapes[type][0], type, uiTileMap);
+            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, game.Shapes[type][0], type, uiTileMap);
             i++;
         }
     }

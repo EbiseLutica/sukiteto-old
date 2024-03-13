@@ -6,9 +6,9 @@ public class ShapeLoader
     
     public bool[][,] this[BlockColor type] => Shape[type];
     
-    public ShapeLoader()
+    public ShapeLoader(string path)
     {
-        var lines = File.ReadAllLines("./assets/data/srs.txt");
+        var lines = File.ReadAllLines(path);
         var lineBuffer = new List<string>(16);
         var currentSymbol = '\0';
 

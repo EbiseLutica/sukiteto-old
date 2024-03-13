@@ -2,28 +2,12 @@
 
 namespace Sukiteto;
 
-public class GameService(ShapeLoader shapes)
+public class GameService
 {
-    public bool[,] CurrentShape => shapes[CurrentBlockColor][BlockRotation];
-
-    /// <summary>
-    /// フィールド
-    /// </summary>
     public BlockColor[,] Field { get; private set; }
-
-    /// <summary>
-    /// フィールドの幅
-    /// </summary>
-    public int Width { get; set; } = 10;
-        
-    /// <summary>
-    /// フィールドの高さ
-    /// </summary>
-    public int Height { get; set; } = 20;
-
-    // 窒息高度より上にどれくらい積めるか
-    // これを超えようとするか、窒息高度付近でブロックを召喚できなくなったらゲームオーバーとなる
-    public int HeightOffset { get; set; } = 6;
+    public ShapeLoader Shapes => Config.RotationSystem.Shapes;
+    
+    public bool[,] CurrentShape => Shapes[CurrentBlockColor][BlockRotation];
 
     /// <summary>
     /// 現在降下中のブロックの現在位置。
@@ -46,30 +30,13 @@ public class GameService(ShapeLoader shapes)
     public BlockColor CurrentHold { get; set; } = BlockColor.None;
 
     /// <summary>
-    /// ホールドできるかどうか
-    /// </summary>
-    public bool CanHold { get; set; } = true;
-
-    /// <summary>
     /// 次に出てくるブロックのキュー
     /// </summary>
-    public Queue<BlockColor> NextQueue { get; } = new Queue<BlockColor>();
+    public Queue<BlockColor> NextQueue { get; } = [];
 
-    /// <summary>
-    /// ブロックの速度
-    /// </summary>
-    public float FallSpeed { get; set; } = 2;
-
-    /// <summary>
-    /// 固定までの猶予時間（単位は時間）
-    /// </summary>
-    public float GraceTimeForFix { get; set; } = 0.5f;
+    public GameConfig Config { get; }
     
-    public string? CustomMapString { get; set; }
-    
-    public BlockColor[]? WhitelistedBlocks { get; set; }
-    
-    public bool IsCrazyMode { get; set; }
+    public bool UsedHold { get; set; }
 
     /// <summary>
     /// 自由落下のタイマー
@@ -79,17 +46,12 @@ public class GameService(ShapeLoader shapes)
     /// <summary>
     /// 固定のタイマー
     /// </summary>
-    private float fixTimer;
+    private float lockTimer;
 
     /// <summary>
     /// 固定猶予リセットカウンター
     /// </summary>
-    private float fixResetCounter;
-
-    /// <summary>
-    /// ソフトドロップ中かどうか
-    /// </summary>
-    private bool isDroppingSoftly;
+    private float lockResetCounter;
 
     /// <summary>
     /// Tspinされたかどうか
@@ -101,72 +63,27 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private bool isTspinMini;
 
-    private BlockColor[] allBlocks =
-    [
-        BlockColor.I,
-        BlockColor.J,
-        BlockColor.L,
-        BlockColor.O,
-        BlockColor.S,
-        BlockColor.T,
-        BlockColor.Z
-    ];
+    private static readonly Random Random = new();
 
-    /// <summary>
-    /// 固定猶予リセットの最大数（置くかホールドでリセットする）
-    /// </summary>
-    private static readonly float fixResetMax = 16;
-    
-    /// <summary>
-    /// キックテーブル
-    /// </summary>
-    private static readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTable = new()
+    public GameService(GameConfig config)
     {
-        [(0, 1)] = [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
-        [(1, 0)] = [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
-        [(1, 2)] = [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
-        [(2, 1)] = [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
-        [(2, 3)] = [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
-        [(3, 2)] = [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
-        [(3, 0)] = [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
-        [(0, 3)] = [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
-    };
-
-    /// <summary>
-    /// キックテーブル（Iブロック用）
-    /// </summary>
-    private static readonly Dictionary<(int fromRot, int toRot), VectorInt[]> kickTableI = new()
-    {
-        [(0, 1)] = [(0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)],
-        [(1, 0)] = [(0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)],
-        [(1, 2)] = [(0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)],
-        [(2, 1)] = [(0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)],
-        [(2, 3)] = [(0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)],
-        [(3, 2)] = [(0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)],
-        [(3, 0)] = [(0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)],
-        [(0, 3)] = [(0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)],
-    };
-    
-    private static readonly Random random = new();
-
-    public void Start()
-    {
-        if (CustomMapString == null)
+        this.Config = config;
+        if (config.CustomMapString == null)
         {
-            Field = new BlockColor[Width, Height + HeightOffset];
+            Field = new BlockColor[config.FieldSize.X, config.FieldSize.Y + config.TopMargin];
         }
         else
         {
-            var mapLines = CustomMapString.Split('\n');
+            var mapLines = config.CustomMapString.Split('\n');
             var height = mapLines.Length;
             var width = mapLines.Max(line => line.Length);
-            Field = new BlockColor[width, height + HeightOffset];
+            Field = new BlockColor[width, height + config.TopMargin];
 
             for (var y = 0; y < mapLines.Length; y++)
             {
                 for (var x = 0; x < mapLines[y].Length; x++)
                 {
-                    Field[x, y + HeightOffset] = mapLines[y][x] switch
+                    Field[x, y + config.TopMargin] = mapLines[y][x] switch
                     {
                         'I' => BlockColor.I,
                         'J' => BlockColor.J,
@@ -181,12 +98,11 @@ public class GameService(ShapeLoader shapes)
                     };
                 }
             }
-
-            if (WhitelistedBlocks != null)
-            {
-                allBlocks = WhitelistedBlocks;
-            }
         }
+    }
+
+    public void Start()
+    {
 
         EnqueueNexts();
         SpawnNextBlock();
@@ -196,7 +112,6 @@ public class GameService(ShapeLoader shapes)
     {
         ProcessFreefall(deltaTime);
         ProcessFix(deltaTime);
-        isDroppingSoftly = false;
     }
 
     public bool TriggerLeft()
@@ -221,7 +136,6 @@ public class GameService(ShapeLoader shapes)
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape)) return false;
         BlockPosition += VectorInt.Down;
-        isDroppingSoftly = true;
 
         return true;
     }
@@ -229,7 +143,7 @@ public class GameService(ShapeLoader shapes)
     public void TriggerHardDrop()
     {
         BlockPosition = (BlockPosition.X, RayToDown());
-        fixTimer = GraceTimeForFix;
+        lockTimer = Config.LockDelay;
         ProcessFix(0);
     }
     
@@ -237,7 +151,7 @@ public class GameService(ShapeLoader shapes)
     {
         var nextRotation = BlockRotation - 1;
         if (nextRotation < 0) nextRotation = 3;
-        var kickValue = TryKick(nextRotation);
+        var kickValue = Config.RotationSystem.TryKick(this, CurrentBlockColor, BlockPosition, BlockRotation, nextRotation);
         if (!kickValue.HasValue) return false;
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
@@ -251,7 +165,7 @@ public class GameService(ShapeLoader shapes)
     {
         var nextRotation = BlockRotation + 1;
         if (nextRotation > 3) nextRotation = 0;
-        var kickValue = TryKick(nextRotation);
+        var kickValue = Config.RotationSystem.TryKick(this, CurrentBlockColor, BlockPosition, BlockRotation, nextRotation);
         if (!kickValue.HasValue) return false;
         BlockPosition += kickValue.Value;
         BlockRotation = nextRotation;
@@ -263,17 +177,23 @@ public class GameService(ShapeLoader shapes)
     
     public bool TriggerHold()
     {
-        if (!CanHold) return false;
+        if (Config.HoldMode == GameConfig.HoldModeFlag.None || UsedHold) return false;
         if (CurrentHold == BlockColor.None)
         {
             CurrentHold = CurrentBlockColor;
             SpawnNextBlock();
+            if (Config.HoldMode != GameConfig.HoldModeFlag.Infinite)
+            {
+                UsedHold = true;
+            }
             Hold?.Invoke();
-            CanHold = false;
             return true;
         }
         (CurrentHold, CurrentBlockColor) = (CurrentBlockColor, CurrentHold);
-        CanHold = false;
+        if (Config.HoldMode != GameConfig.HoldModeFlag.Infinite)
+        {
+            UsedHold = true;
+        }
         Hold?.Invoke();
         ResetStateForSpawning();
 
@@ -293,22 +213,45 @@ public class GameService(ShapeLoader shapes)
 
         return y;
     }
+    
+    /// <summary>
+    /// ブロックをその位置に配置できるかどうかを算出します。
+    /// </summary>
+    /// <param name="x">フィールド X</param>
+    /// <param name="y">フィールド Y</param>
+    /// <param name="blockShape">ブロック形状</param>
+    /// <returns>配置できる（衝突しない）場合は<c>true</c>を、衝突してしまう場合は<c>false</c>を返します。</returns>
+    public bool CanPlaceBlock(int x, int y, bool[,] blockShape)
+    {
+        for (var i = 0; i < blockShape.GetLength(0); i++)
+        {
+            for (var j = 0; j < blockShape.GetLength(1); j++)
+            {
+                if (!blockShape[i, j]) continue;
+                var (w, h) = Config.FieldSize + (0, Config.TopMargin);
+                if (x + i < 0 || x + i >= w || y + j < 0 || y + j >= h) return false;
+                if (Field[x + i, y + j] != BlockColor.None) return false;
+            }
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// 自由落下の制御
     /// </summary>
     private void ProcessFreefall(float deltaTime = 0)
     {
-        if (fixTimer > 0) return;
+        if (lockTimer > 0) return;
 
         var currentTop = RayToDown();
 
-        freefallDistance += MathF.Min(FallSpeed * deltaTime, 20);
+        freefallDistance += MathF.Min(Config.FallSpeed * deltaTime, 20);
         if (freefallDistance < 1) return;
 
         var distanceInt = (int)freefallDistance;
         BlockPosition += (0, distanceInt);
-        if (BlockPosition.Y > currentTop && !IsCrazyMode)
+        if (BlockPosition.Y > currentTop && !Config.IsCrazyMode)
         {
             BlockPosition = (BlockPosition.X, currentTop);
         }
@@ -329,15 +272,15 @@ public class GameService(ShapeLoader shapes)
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape))
         {
-            if (fixTimer == 0) BlockHit?.Invoke();
-            fixTimer += deltaTime;
+            if (lockTimer == 0) BlockHit?.Invoke();
+            lockTimer += deltaTime;
         }
-        else if (fixTimer > 0)
+        else if (lockTimer > 0)
         {
             ResetFix();
         }
         
-        if (fixTimer < GraceTimeForFix && fixResetCounter < fixResetMax) return;
+        if (lockTimer < Config.LockDelay && lockResetCounter < Config.LockDelayResetMaxCount) return;
         BlockPosition = (BlockPosition.X, RayToDown());
         PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
@@ -350,14 +293,15 @@ public class GameService(ShapeLoader shapes)
     private void ProcessLineClear()
     {
         var cleared = 0;
-        var bottom = Height + HeightOffset - 1;
+        var (width, height) = Config.FieldSize + (0, Config.TopMargin);
+        var bottom = height - 1;
         var y2 = bottom + 1;
-        var clearedLineIndicesBuffer1 = new int[Height + HeightOffset];
+        var clearedLineIndicesBuffer = new int[height];
         for (var y = bottom; y >= 0; y--)
         {
             y2--;
             var isLineFilled = true;
-            for (var x = 0; x < Width; x++)
+            for (var x = 0; x < width; x++)
             {
                 if (Field[x, y] != BlockColor.None) continue;
                 isLineFilled = false;
@@ -365,7 +309,7 @@ public class GameService(ShapeLoader shapes)
             }
 
             if (!isLineFilled) continue;
-            clearedLineIndicesBuffer1[cleared] = y2;
+            clearedLineIndicesBuffer[cleared] = y2;
             cleared++;
             ShiftDownField(y);
             y++;
@@ -376,7 +320,7 @@ public class GameService(ShapeLoader shapes)
             // TODO: 追加判定をスコアに加味する
             LineClear?.Invoke(new LineClearEventArgs()
             {
-                ClearedLineIndices = clearedLineIndicesBuffer1.AsMemory(0, cleared),
+                ClearedLineIndices = clearedLineIndicesBuffer.AsMemory(0, cleared),
                 IsTSpin = isTspin,
                 IsTSpinMini = isTspinMini,
             });
@@ -388,6 +332,8 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private bool CheckTspin(VectorInt? kickValue)
     {
+        var (width, height) = Config.FieldSize + (0, Config.TopMargin);
+
         // Tを持っているかどうかチェック
         if (CurrentBlockColor != BlockColor.T)
         {
@@ -399,24 +345,24 @@ public class GameService(ShapeLoader shapes)
         isTspinMini = false;
 
         // Tspinの判定カウンタ
-        int counter = 0;
+        var counter = 0;
 
         // 4隅の判定箇所のうちTspinMiniの条件を満たす場所が空いているかどうか
-        bool isMini = false;
+        var isMini = false;
 
-        VectorInt offsetPosition = BlockPosition + (1, 1);
+        var offsetPosition = BlockPosition + (1, 1);
 
         // 左上
         {
-            int checkX = offsetPosition.X - 1;
-            int checkY = offsetPosition.Y - 1;
+            var checkX = offsetPosition.X - 1;
+            var checkY = offsetPosition.Y - 1;
             if (checkY >= 0)
             {
-                if (checkX < 0 || Field[checkX, checkY] != BlockColor.None) 
+                if (checkX < 0 || Field[checkX, checkY] != BlockColor.None)
                 {
                     counter++;
                 }
-                else if (BlockRotation == 0 || BlockRotation == 3)
+                else if (BlockRotation is 0 or 3)
                 {
                     //TspinMini判定
                     isMini = true;
@@ -426,16 +372,16 @@ public class GameService(ShapeLoader shapes)
 
         // 右上
         {
-            int checkX = offsetPosition.X + 1;
-            int checkY = offsetPosition.Y - 1;
+            var checkX = offsetPosition.X + 1;
+            var checkY = offsetPosition.Y - 1;
             if (checkY >= 0)
             {
-                if (checkX >= Width || Field[checkX, checkY] != BlockColor.None)
+                if (checkX >= Config.FieldSize.X || Field[checkX, checkY] != BlockColor.None)
                 {
                     counter++;
 
                 }
-                else if (BlockRotation == 0 || BlockRotation == 1)
+                else if (BlockRotation is 0 or 1)
                 {
                     //TspinMini判定
                     isMini = true;
@@ -445,13 +391,13 @@ public class GameService(ShapeLoader shapes)
 
         // 右下
         {
-            int checkX = offsetPosition.X + 1;
-            int checkY = offsetPosition.Y + 1;
-            if (checkX >= Width || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None)
+            var checkX = offsetPosition.X + 1;
+            var checkY = offsetPosition.Y + 1;
+            if (checkX >= width || checkY >= height || Field[checkX, checkY] != BlockColor.None)
             {
                 counter++;
             }
-            else if (BlockRotation == 1 || BlockRotation == 2)
+            else if (BlockRotation is 1 or 2)
             {
                 //TspinMini判定
                 isMini = true;
@@ -461,13 +407,13 @@ public class GameService(ShapeLoader shapes)
 
         // 左下
         {
-            int checkX = offsetPosition.X - 1;
-            int checkY = offsetPosition.Y + 1;
-            if (checkX < 0 || checkY >= Height+HeightOffset || Field[checkX, checkY] != BlockColor.None)
+            var checkX = offsetPosition.X - 1;
+            var checkY = offsetPosition.Y + 1;
+            if (checkX < 0 || checkY >= height || Field[checkX, checkY] != BlockColor.None)
             {
                 counter++;
             }
-            else if (BlockRotation == 2 || BlockRotation == 3)
+            else if (BlockRotation is 2 or 3)
             {
                 //TspinMini判定
                 isMini = true;
@@ -488,7 +434,7 @@ public class GameService(ShapeLoader shapes)
                 isTspinMini = true;
             }
 
-            TspinRotate.Invoke();
+            TspinRotate?.Invoke();
             return true;
         }
 
@@ -501,7 +447,7 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private void EnqueueNexts()
     {
-        foreach (var type in allBlocks.OrderBy(_ => random.Next()))
+        foreach (var type in Config.UsingBlocks.OrderBy(_ => Random.Next()))
         {
             NextQueue.Enqueue(type);
         }
@@ -514,13 +460,13 @@ public class GameService(ShapeLoader shapes)
     {
         CurrentBlockColor = NextQueue.Dequeue();
         // NEXTが減ってきたら補充する
-        if (NextQueue.Count < 7)
+        while (NextQueue.Count < 7)
         {
             EnqueueNexts();
         }
 
         ResetStateForSpawning();
-        CanHold = true;
+        UsedHold = false;
 
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape))
         {
@@ -541,13 +487,13 @@ public class GameService(ShapeLoader shapes)
     {   
         for (var i = y; i >= 0; i--)
         {
-            for (var j = 0; j < Width; j++)
+            for (var j = 0; j < Config.FieldSize.X; j++)
             {
                 Field[j, i] = i > 0 ? Field[j, i - 1] : BlockColor.None;
             }
         }
         
-        for (var i = 0; i < Width; i++)
+        for (var i = 0; i < Config.FieldSize.X; i++)
         {
             Field[i, 0] = BlockColor.None;
         }
@@ -558,29 +504,9 @@ public class GameService(ShapeLoader shapes)
     /// </summary>
     private void ResetFix()
     {
-        if (fixTimer == 0) return;
-        fixTimer = 0;
-        fixResetCounter++;
-    }
-
-    /// <summary>
-    /// キックテーブルを元にブロックのキックを試みます。
-    /// </summary>
-    /// <param name="nextRotation">試行する回転</param>
-    /// <returns>キックが成功した場合はその相対座標、失敗した場合は<c>null</c>。</returns>
-    private VectorInt? TryKick(int nextRotation)
-    {
-        var table = CurrentBlockColor == BlockColor.I ? kickTableI : kickTable;
-        var testCases = table[(BlockRotation, nextRotation)];
-        foreach (var testCase in testCases)
-        {
-            if (CanPlaceBlock(BlockPosition.X + testCase.X, BlockPosition.Y + testCase.Y, shapes[CurrentBlockColor][nextRotation]))
-            {
-                return testCase;
-            }
-        }
-
-        return null;
+        if (lockTimer == 0) return;
+        lockTimer = 0;
+        lockResetCounter++;
     }
 
     /// <summary>
@@ -603,47 +529,25 @@ public class GameService(ShapeLoader shapes)
 
         BlockPlace?.Invoke();
     }
-    
-    /// <summary>
-    /// ブロックをその位置に配置できるかどうかを算出します。
-    /// </summary>
-    /// <param name="x">フィールド X</param>
-    /// <param name="y">フィールド Y</param>
-    /// <param name="blockShape">ブロック形状</param>
-    /// <returns>配置できる（衝突しない）場合は<c>true</c>を、衝突してしまう場合は<c>false</c>を返します。</returns>
-    private bool CanPlaceBlock(int x, int y, bool[,] blockShape)
-    {
-        for (var i = 0; i < blockShape.GetLength(0); i++)
-        {
-            for (var j = 0; j < blockShape.GetLength(1); j++)
-            {
-                if (!blockShape[i, j]) continue;
-                if (x + i < 0 || x + i >= Width || y + j < 0 || y + j >= Height + HeightOffset) return false;
-                if (Field[x + i, y + j] != BlockColor.None) return false;
-            }
-        }
-
-        return true;
-    }
 
     /// <summary>
     /// ブロックのスポーンおよびホールドから引っ張ってきたときに行うリセット処理
     /// </summary>
     private void ResetStateForSpawning()
     {
-        fixResetCounter = 0;
-        fixTimer = 0;
-        BlockPosition = (Width / 2 - 2, HeightOffset - 3);
+        lockResetCounter = 0;
+        lockTimer = 0;
+        BlockPosition = (Config.FieldSize.X / 2 - 2, Math.Max(0, Config.TopMargin - 3));
         BlockRotation = 0;
         isTspin = false;
         isTspinMini = false;
     }
 
-    public event Action<LineClearEventArgs> LineClear;
-    public event Action Hold;
-    public event Action SpawnNext;
-    public event Action GameOver;
-    public event Action BlockPlace;
-    public event Action BlockHit;
-    public event Action TspinRotate;
+    public event Action<LineClearEventArgs>? LineClear;
+    public event Action? Hold;
+    public event Action? SpawnNext;
+    public event Action? GameOver;
+    public event Action? BlockPlace;
+    public event Action? BlockHit;
+    public event Action? TspinRotate;
 }
