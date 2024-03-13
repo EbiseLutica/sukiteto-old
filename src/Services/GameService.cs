@@ -68,6 +68,8 @@ public class GameService(ShapeLoader shapes)
     public string? CustomMapString { get; set; }
     
     public BlockColor[]? WhitelistedBlocks { get; set; }
+    
+    public bool IsCrazyMode { get; set; }
 
     /// <summary>
     /// 自由落下のタイマー
@@ -113,7 +115,7 @@ public class GameService(ShapeLoader shapes)
     /// <summary>
     /// 固定猶予リセットの最大数（置くかホールドでリセットする）
     /// </summary>
-    private static readonly float fixResetMax = 8;
+    private static readonly float fixResetMax = 16;
     
     /// <summary>
     /// キックテーブル
@@ -200,7 +202,8 @@ public class GameService(ShapeLoader shapes)
     public bool TriggerLeft()
     {
         if (!CanPlaceBlock(BlockPosition.X - 1, BlockPosition.Y, CurrentShape)) return false;
-        BlockPosition += VectorInt.Left;;
+        BlockPosition += VectorInt.Left;
+        ResetFix();
         
         return true;
     }
@@ -209,6 +212,7 @@ public class GameService(ShapeLoader shapes)
     {
         if (!CanPlaceBlock(BlockPosition.X + 1, BlockPosition.Y, CurrentShape)) return false;
         BlockPosition += VectorInt.Right;
+        ResetFix();
         
         return true;
     }
@@ -304,7 +308,7 @@ public class GameService(ShapeLoader shapes)
 
         var distanceInt = (int)freefallDistance;
         BlockPosition += (0, distanceInt);
-        if (BlockPosition.Y > currentTop)
+        if (BlockPosition.Y > currentTop && !IsCrazyMode)
         {
             BlockPosition = (BlockPosition.X, currentTop);
         }

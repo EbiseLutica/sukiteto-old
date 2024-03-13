@@ -11,10 +11,7 @@ using Promete.Windowing;
 namespace Sukiteto;
 
 public class GameScene(
-    PrometeApp app,
-    IWindow window,
     AudioPlayer audio,
-    ConsoleLayer console,
     Resources resources,
     InputService input,
     ShapeLoader shapes
@@ -99,7 +96,7 @@ public class GameScene(
         {
             if (input[InputType.Ok].IsButtonUp)
             {
-                app.LoadScene<TitleScene>();
+                App.LoadScene<TitleScene>();
             }
 
             return;
@@ -108,7 +105,7 @@ public class GameScene(
         if (isPausingGame) return;
         ProcessDas();
         ProcessInput();
-        game.Tick(window.DeltaTime);
+        game.Tick(Window.DeltaTime);
 
         RenderCurrentBlock();
     }
@@ -200,7 +197,7 @@ public class GameScene(
 
         if (input[InputType.MoveLeft].ElapsedTime >= das)
         {
-            dasTimer += window.DeltaTime;
+            dasTimer += Window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerLeft();
@@ -209,7 +206,7 @@ public class GameScene(
         }
         else if (input[InputType.MoveRight].ElapsedTime >= das)
         {
-            dasTimer += window.DeltaTime;
+            dasTimer += Window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerRight();
@@ -219,7 +216,7 @@ public class GameScene(
 
         if (input[InputType.SoftDrop])
         {
-            dasTimer += window.DeltaTime;
+            dasTimer += Window.DeltaTime;
             if (dasTimer > arr)
             {
                 moved = game.TriggerDown();
@@ -261,7 +258,7 @@ public class GameScene(
         // リロード
         if (input[InputType.Quit].IsButtonDown)
         {
-            app.LoadScene<TitleScene>();
+            App.LoadScene<TitleScene>();
         }
         
         // ホールド
