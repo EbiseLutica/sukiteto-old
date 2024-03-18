@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Promete" Version="0.7.2-build-730913" />
+    <PackageReference Include="Promete" Version="0.10.1" />
   </ItemGroup>
 
   <ItemGroup>

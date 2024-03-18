@@ -3,7 +3,7 @@
 namespace Sukiteto;
 
 /// <summary>
-/// 補正の無いローテーションシステム。
+/// 補正の無い回転システム。
 /// </summary>
 public class ClassicRotationSystem : IRotationSystem
 {

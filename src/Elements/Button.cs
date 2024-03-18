@@ -7,7 +7,7 @@ using Promete.Input;
 
 namespace Sukiteto;
 
-public class Button : CustomElement
+public class Button : ContainableElementBase
 {
     public string Content { get; set; }
    
@@ -44,7 +44,8 @@ public class Button : CustomElement
         text = new Text(Content, Font.GetDefault(16), TextColor);
         text.Location = (base.Size / 2 - text.Size / 2);
         
-        children.AddRange([backdrop, text]);
+        children.Add(backdrop);
+        children.Add(text);
         // isTrimmable = true;
     }
 

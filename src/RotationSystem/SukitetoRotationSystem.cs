@@ -2,6 +2,9 @@
 
 namespace Sukiteto;
 
+/// <summary>
+/// Sukiteto独自の回転システム。
+/// </summary>
 public class SukitetoRotationSystem : IRotationSystem
 {
     public ShapeLoader Shapes { get; } = new("./assets/data/srs.txt");

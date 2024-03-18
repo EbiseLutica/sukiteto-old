@@ -1,52 +1,23 @@
-using System.Collections;
 using System.Drawing;
 using System.Text;
 using Promete;
 using Promete.Audio;
 using Promete.Elements;
 using Promete.Graphics;
-using Promete.Input;
-using Promete.Windowing;
 
 namespace Sukiteto;
 
-public class GameScene(
-    AudioPlayer audio,
-    Resources resources,
-    InputService input
-    ) : Scene
+public class GameScene(AudioPlayer audio, Resources resources, InputService input) : Scene
 {
-    /// <summary>
-    /// フィールドの表示に使うタイルマップ
-    /// </summary>
-    private Tilemap fieldTileMap;
-
-    /// <summary>
-    /// 現在のブロックの表示に使うタイルマップ
-    /// </summary>
-    private Tilemap currentBlockTileMap;
-
-    /// <summary>
-    /// NEXT, HOLD などの表示に使うタイルマップ
-    /// </summary>
-    private Tilemap uiTileMap;
-
-    /// <summary>
-    /// ブロックテクスチャのタイルデータ
-    /// </summary>
-    private Dictionary<BlockColor, ITile> blockTiles;
+    private bool _isGameOver;
     
-    private bool isGameOver;
+    private float _dasTimer;
+
+    private bool _isPausingGame = false;
+
+    private readonly GameService _game = new(GameConfig.Default);
     
-    private float dasTimer;
-
-    private bool isPausingGame = false;
-
-    private readonly VectorInt holdPosition = (9, 5);
-
-    private readonly VectorInt nextPosition = (27, 5);
-
-    private readonly GameService game = new(GameConfig.Default);
+    private GameBoard _gameBoard;
 
     /// <summary>
     /// 長押ししてからブロックが動き始めるまでの時間
@@ -60,30 +31,17 @@ public class GameScene(
 
     public override void OnStart()
     {
-        fieldTileMap = new Tilemap((16, 16));
-        currentBlockTileMap = new Tilemap((16, 16));
-        uiTileMap = new Tilemap((16, 16));
-        Root.AddRange(fieldTileMap, currentBlockTileMap, uiTileMap);
-        blockTiles = new Dictionary<BlockColor, ITile>();
+        _gameBoard = new GameBoard(_game);
+        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
+        _gameBoard.Location = mapLocation;
+        Root.Add(_gameBoard);
         
-        game.Hold += OnHold;
-        game.SpawnNext += OnSpawnNext;
-        game.LineClear += OnLineClear;
-        game.BlockHit += OnBlockHit;
-        game.BlockPlace += OnBlockPlace;
-        game.GameOver += OnGameOver;
-        game.TspinRotate += OnTspinRotate;
+        _game.LineClear += OnLineClear;
+        _game.BlockHit += OnBlockHit;
+        _game.GameOver += OnGameOver;
+        _game.TspinRotate += OnTspinRotate;
 
-        InitializeTiles();
-        RenderWalls();
-
-        game.Start();
-        RenderField();
-
-        currentBlockTileMap.Location = fieldTileMap.Location = (
-            640 / 2 - game.Config.FieldSize.X * 16 / 2f,
-            480 / 2 - game.Config.FieldSize.Y * 16 / 2f - game.Config.TopMargin * 16
-            );
+        _game.Start();
 
         audio.Gain = 0.1f;
         audio.Play(resources.BgmTypeA, 0);
@@ -91,7 +49,7 @@ public class GameScene(
 
     public override void OnUpdate()
     {
-        if (isGameOver)
+        if (_isGameOver)
         {
             if (input[InputType.Ok].IsButtonUp)
             {
@@ -101,27 +59,15 @@ public class GameScene(
             return;
         }
 
-        if (isPausingGame) return;
+        if (_isPausingGame) return;
         ProcessDas();
         ProcessInput();
-        game.Tick(Window.DeltaTime);
-
-        RenderCurrentBlock();
+        _game.Tick(Window.DeltaTime);
     }
 
     public override void OnDestroy()
     {
         audio.Stop();
-    }
-
-    private void OnHold()
-    {
-        RenderHoldNext();
-    }
-
-    private void OnSpawnNext()
-    {
-        RenderHoldNext();
     }
 
     private void OnTspinRotate()
@@ -131,13 +77,8 @@ public class GameScene(
 
     private void OnGameOver()
     {
-        isGameOver = true;
+        _isGameOver = true;
         ProcessGameOver();
-    }
-
-    private void OnBlockPlace()
-    {
-        RenderField();
     }
 
     private void OnBlockHit()
@@ -148,8 +89,6 @@ public class GameScene(
     private void OnLineClear(LineClearEventArgs e)
     {
         audio.PlayOneShotAsync(resources.GetLineClearSound(e));
-        isPausingGame = true;
-        _ = AnimateLineClear(e);
 
         var builder = new StringBuilder();
 
@@ -179,7 +118,7 @@ public class GameScene(
         {
             Effect = EffectedText.EffectType.SlideUp,
             EffectTime = 1,
-            Location = holdPosition * 16 + (0, 96),
+            Location = (48, 120),
         };
         
         Root.Add(effect);
@@ -191,41 +130,41 @@ public class GameScene(
     private void ProcessDas()
     {
         var moved = false;
-        if (input[InputType.MoveLeft].IsButtonDown) moved = game.TriggerLeft();
-        if (input[InputType.MoveRight].IsButtonDown) moved = game.TriggerRight();
+        if (input[InputType.MoveLeft].IsButtonDown) moved = _game.TriggerLeft();
+        if (input[InputType.MoveRight].IsButtonDown) moved = _game.TriggerRight();
 
         if (input[InputType.MoveLeft].ElapsedTime >= das)
         {
-            dasTimer += Window.DeltaTime;
-            if (dasTimer > arr)
+            _dasTimer += Window.DeltaTime;
+            if (_dasTimer > arr)
             {
-                moved = game.TriggerLeft();
-                dasTimer = 0;
+                moved = _game.TriggerLeft();
+                _dasTimer = 0;
             }
         }
         else if (input[InputType.MoveRight].ElapsedTime >= das)
         {
-            dasTimer += Window.DeltaTime;
-            if (dasTimer > arr)
+            _dasTimer += Window.DeltaTime;
+            if (_dasTimer > arr)
             {
-                moved = game.TriggerRight();
-                dasTimer = 0;
+                moved = _game.TriggerRight();
+                _dasTimer = 0;
             }
         }
 
         if (input[InputType.SoftDrop])
         {
-            dasTimer += Window.DeltaTime;
-            if (dasTimer > arr)
+            _dasTimer += Window.DeltaTime;
+            if (_dasTimer > arr)
             {
-                moved = game.TriggerDown();
-                dasTimer = 0;
+                moved = _game.TriggerDown();
+                _dasTimer = 0;
             }
         }
         
         if (!input[InputType.MoveLeft] && !input[InputType.MoveRight] && !input[InputType.SoftDrop])
         {
-            dasTimer = 0;
+            _dasTimer = 0;
         }
         
         if (moved) audio.PlayOneShotAsync(resources.SfxMove);
@@ -238,18 +177,18 @@ public class GameScene(
     {
         if (input[InputType.HardDrop].IsButtonDown)
         {
-            game.TriggerHardDrop();
+            _game.TriggerHardDrop();
             audio.PlayOneShotAsync(resources.SfxHardDrop);
         }
 
         // 左回転
-        if (input[InputType.RotateLeft].IsButtonDown && game.TriggerRotateLeft())
+        if (input[InputType.RotateLeft].IsButtonDown && _game.TriggerRotateLeft())
         {
             audio.PlayOneShotAsync(resources.SfxMove);
         }
         
         // 右回転
-        if (input[InputType.RotateRight].IsButtonDown && game.TriggerRotateRight())
+        if (input[InputType.RotateRight].IsButtonDown && _game.TriggerRotateRight())
         {
             audio.PlayOneShotAsync(resources.SfxMove);
         }
@@ -261,7 +200,7 @@ public class GameScene(
         }
         
         // ホールド
-        if (input[InputType.Hold].IsButtonDown && game.TriggerHold())
+        if (input[InputType.Hold].IsButtonDown && _game.TriggerHold())
         {
             audio.PlayOneShotAsync(resources.SfxHold);
         }
@@ -277,125 +216,5 @@ public class GameScene(
         gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
         audio.Play(resources.SfxGameOver);
         Root.Add(gameoverText);
-    }
-
-    /// <summary>
-    /// 現在のフィールドをタイルマップにレンダリングします。
-    /// </summary>
-    private void RenderField()
-    {
-        var config = game.Config;
-        for (var x = 0; x < config.FieldSize.X; x++)
-        {
-            for (var y = 0; y < config.FieldSize.Y + config.TopMargin; y++)
-            {
-                fieldTileMap[x, y] = game.Field[x, y] == BlockColor.None ? null : blockTiles[game.Field[x, y]];
-            }
-        }
-    }
-    
-    private void RenderCurrentBlock()
-    {
-        currentBlockTileMap.Clear();
-        if (isPausingGame) return;
-        var ghostY = game.RayToDown();
-        var pos = game.BlockPosition;
-        RenderBlockToTilemap(pos.X, ghostY, game.CurrentShape, BlockColor.Ghost, currentBlockTileMap);
-        RenderBlockToTilemap(pos.X, pos.Y, game.CurrentShape, game.CurrentBlockColor, currentBlockTileMap);
-    }
-    
-    private async Task AnimateLineClear(LineClearEventArgs e)
-    {
-        isPausingGame = true;
-        ProcessLine();
-        await Task.Delay(500);
-        audio.PlayOneShotAsync(resources.SfxLineClearFix);
-        RenderField();
-        isPausingGame = false;
-        return;
-
-        void ProcessLine()
-        {
-            var span = e.ClearedLineIndices.Span;
-            foreach (var y in span)
-            {
-                for (var x = 0; x < game.Config.FieldSize.X; x++)
-                {
-                    fieldTileMap[x, y] = null;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 指定したブロックをタイルマップにレンダリングします。
-    /// </summary>
-    /// <param name="x">タイルマップのX</param>
-    /// <param name="y">タイルマップのY</param>
-    /// <param name="blockShape">ブロック形状</param>
-    /// <param name="blockColor">ブロックの色</param>
-    /// <param name="map">タイルマップ</param>
-    private void RenderBlockToTilemap(int x, int y, bool[,] blockShape, BlockColor blockColor, Tilemap map)
-    {
-        var tile = blockTiles[blockColor];
-        for (var i = 0; i < blockShape.GetLength(0); i++)
-        {
-            for (var j = 0; j < blockShape.GetLength(1); j++)
-            {
-                if (!blockShape[i, j]) continue;
-                map[x + i, y + j] = tile;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 壁をタイルマップに描画します。
-    /// </summary>
-    private void RenderWalls()
-    {
-        var wallTile = blockTiles[BlockColor.Wall];
-        var (width, height) = game.Config.FieldSize;
-        // 縦
-        for (var y = 0; y <= height; y++)
-        {
-            fieldTileMap[-1, y + game.Config.TopMargin] = wallTile;
-            fieldTileMap[width, y + game.Config.TopMargin] = wallTile;
-        }
-        
-        // 横
-        for (var x = 0; x < width; x++)
-        {
-            fieldTileMap[x, height + game.Config.TopMargin] = wallTile;
-        }
-    }
-
-    /// <summary>
-    /// ブロックや壁のテクスチャから、<see cref="Tile"/> を生成します。
-    /// </summary>
-    private void InitializeTiles()
-    {
-        foreach (var (type, texture) in resources.Block)
-        {
-            blockTiles[type] = new Tile(texture);
-        }
-    }
-
-    /// <summary>
-    /// ホールド、ネクストを画面上にレンダリングします。
-    /// </summary>
-    private void RenderHoldNext()
-    {
-        uiTileMap.Clear();
-        if (game.CurrentHold != BlockColor.None)
-        {
-            RenderBlockToTilemap(holdPosition.X, holdPosition.Y, game.Shapes[game.CurrentHold][0], !game.UsedHold ? game.CurrentHold : BlockColor.Ghost, uiTileMap);
-        }
-
-        var i = 0;
-        foreach (var type in game.NextQueue.Take(4))
-        {
-            RenderBlockToTilemap(nextPosition.X, nextPosition.Y + i * 4, game.Shapes[type][0], type, uiTileMap);
-            i++;
-        }
     }
 }

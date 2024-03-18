@@ -2,6 +2,9 @@
 
 namespace Sukiteto;
 
+/// <summary>
+/// Sukitetoにおける回転システムのインターフェース。
+/// </summary>
 public interface IRotationSystem
 {
     ShapeLoader Shapes { get; }

@@ -7,7 +7,9 @@ namespace Sukiteto;
 public class Resources
 {
     public Dictionary<BlockColor, ITexture> Block { get; }
-    
+
+    public Dictionary<BlockColor, ITile> BlockTiles { get; }
+
     public ITexture Logo { get; }
 
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
@@ -45,6 +47,7 @@ public class Resources
             [BlockColor.Ghost] = minos[7],
             [BlockColor.Wall] = minos[8],
         };
+        BlockTiles = Block.ToDictionary(kv => kv.Key, kv => new Tile(kv.Value) as ITile);
     }
 
     public IAudioSource GetLineClearSound(LineClearEventArgs e)

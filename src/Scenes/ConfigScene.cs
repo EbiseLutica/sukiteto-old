@@ -1,24 +1,26 @@
 ﻿using System.Drawing;
 using Promete;
-using Promete.Elements;
 using Promete.Input;
 
 namespace Sukiteto;
 
-public class ConfigScene(ConsoleLayer layer, Mouse mouse) : Scene
+public class ConfigScene : Scene
 {
-    private Button btn;
-    protected override Container Setup()
+    private readonly Mouse _mouse;
+    private readonly Button _btn;
+
+    public ConfigScene(Mouse mouse)
     {
-        var tex = Window.TextureFactory.Load9Sliced("./assets/textures/ui_button.png", 5, 9, 5, 5);
-        return
+        _mouse = mouse;
+
+        Root =
         [
-            btn = new Button("Test", Color.Violet, Color.Black, (32, 32)),
+            _btn = new Button("Test", Color.Violet, Color.Black, (32, 32)),
         ];
     }
-    
+
     public override void OnUpdate()
     {
-        btn.Location = mouse.Position;
+        _btn.Location = _mouse.Position;
     }
 }
