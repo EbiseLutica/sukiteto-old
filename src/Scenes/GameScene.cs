@@ -35,9 +35,8 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _game.GameOver += OnGameOver;
 
         _game.Start();
-
-        audio.Gain = 0.1f;
-        audio.Play(resources.BgmTypeA, 0);
+        audio.Gain = 0.3f;
+        audio.Play(resources.BgmX030, resources.LoopX030);
     }
 
     public override void OnUpdate()

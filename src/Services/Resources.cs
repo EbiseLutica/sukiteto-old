@@ -12,7 +12,11 @@ public class Resources
 
     public Texture2D Logo { get; }
 
+    public int LoopX030 { get; } = 379050;
+
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
+
+    public IAudioSource BgmX030 { get; } = new VorbisAudioSource("./assets/sounds/x030.ogg");
     
     public IAudioSource SfxMove { get; } = new WaveAudioSource("./assets/sounds/move.wav");
     public IAudioSource SfxHold { get; } = new WaveAudioSource("./assets/sounds/hold.wav");

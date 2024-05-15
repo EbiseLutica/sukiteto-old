@@ -44,8 +44,8 @@ public class AIGameScene(AudioPlayer audio, Resources resources, InputService in
 
         _game.Start();
 
-        audio.Gain = 0.1f;
-        audio.Play(resources.BgmTypeA, 0);
+        audio.Gain = 0.3f;
+        audio.Play(resources.BgmX030, resources.LoopX030);
     }
 
     public override void OnUpdate()
