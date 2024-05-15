@@ -6,11 +6,11 @@ namespace Sukiteto;
 
 public class Resources
 {
-    public Dictionary<BlockColor, ITexture> Block { get; }
+    public Dictionary<BlockColor, Texture2D> Block { get; }
 
     public Dictionary<BlockColor, ITile> BlockTiles { get; }
 
-    public ITexture Logo { get; }
+    public Texture2D Logo { get; }
 
     public IAudioSource BgmTypeA { get; } = new VorbisAudioSource("./assets/sounds/type_a.ogg");
     
@@ -35,7 +35,7 @@ public class Resources
         _window = window;
         Logo = _window.TextureFactory.Load("./assets/textures/logo.png");
         var minos = _window.TextureFactory.LoadSpriteSheet("./assets/textures/shapes.png", 9, 1, (16, 16));
-        Block = new Dictionary<BlockColor, ITexture>
+        Block = new Dictionary<BlockColor, Texture2D>
         {
             [BlockColor.O] = minos[0],
             [BlockColor.J] = minos[1],

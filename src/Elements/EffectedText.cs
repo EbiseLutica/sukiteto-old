@@ -25,8 +25,6 @@ public class EffectedText(
         
         if (timer > EffectTime)
         {
-            // TODO Destroy() で消えるようにPrometeを改良する
-            (Parent as Container)?.Remove(this);
             Destroy();
             return;
         }
