@@ -223,12 +223,12 @@ public class GameService
     /// <returns>配置できる（衝突しない）場合は<c>true</c>を、衝突してしまう場合は<c>false</c>を返します。</returns>
     public bool CanPlaceBlock(int x, int y, bool[,] blockShape)
     {
+        var (w, h) = Config.FieldSize + (0, Config.TopMargin);
         for (var i = 0; i < blockShape.GetLength(0); i++)
         {
             for (var j = 0; j < blockShape.GetLength(1); j++)
             {
                 if (!blockShape[i, j]) continue;
-                var (w, h) = Config.FieldSize + (0, Config.TopMargin);
                 if (x + i < 0 || x + i >= w || y + j < 0 || y + j >= h) return false;
                 if (Field[x + i, y + j] != BlockColor.None) return false;
             }

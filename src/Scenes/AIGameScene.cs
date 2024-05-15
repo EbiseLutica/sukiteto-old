@@ -7,19 +7,25 @@ using Promete.Graphics;
 
 namespace Sukiteto;
 
-public class GameScene(AudioPlayer audio, Resources resources, InputService input) : Scene
+public class AIGameScene(AudioPlayer audio, Resources resources, InputService input) : Scene
 {
     private bool _isGameOver;
-
-    private bool _isPausingGame = false;
 
     private GameBoard _gameBoard;
     
     private DefaultSoundPlugin _soundPlugin;
-    
-    private DefaultInputPlugin _inputPlugin;
+
+    private AISystem _ai;
     
     private readonly GameService _game = new(GameConfig.Default);
+
+    private readonly Random _random = new();
+
+    private readonly Queue<InputType> _inputQueue = [];
+
+    private float aiInputDelay = 0.1f;
+
+    private float aiInputTimer = 0;
 
     public override void OnStart()
     {
@@ -29,10 +35,12 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         Root.Add(_gameBoard);
         
         _soundPlugin = new DefaultSoundPlugin(_game, audio, resources);
-        _inputPlugin = new DefaultInputPlugin(input, _game, audio, resources);
+        
+        _ai = new AISystem(_game);
         
         _game.LineClear += OnLineClear;
         _game.GameOver += OnGameOver;
+        _game.SpawnNext += OnSpawnNext;
 
         _game.Start();
 
@@ -51,10 +59,8 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
 
             return;
         }
-
-        if (_isPausingGame) return;
-        _inputPlugin.Process(Window.DeltaTime);
         ProcessInput();
+        ProcessAI();
         _game.Tick(Window.DeltaTime);
     }
 
@@ -62,6 +68,40 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
     {
         audio.Stop();
         _soundPlugin.Dispose();
+    }
+    
+    private void OnSpawnNext()
+    {
+        if (_isGameOver) return;
+        var (firstMove, firstRotation, lastMove, lastRotation, useHold) = _ai.Think();
+        
+        _inputQueue.Clear();
+
+        if (useHold)
+        {
+            _inputQueue.Enqueue(InputType.Hold);
+        }
+
+        switch (firstRotation)
+        {
+            case 1:
+                _inputQueue.Enqueue(InputType.RotateRight);
+                break;
+            case 2:
+                _inputQueue.Enqueue(InputType.RotateRight);
+                _inputQueue.Enqueue(InputType.RotateRight);
+                break;
+            case 3:
+                _inputQueue.Enqueue(InputType.RotateLeft);
+                break;
+        }
+        
+        for (var i = 0; i < Math.Abs(firstMove); i++)
+        {
+            _inputQueue.Enqueue(firstMove > 0 ? InputType.MoveRight : InputType.MoveLeft);
+        }
+        
+        _inputQueue.Enqueue(InputType.HardDrop);
     }
 
     private void OnGameOver()
@@ -118,6 +158,44 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         }
     }
 
+    private void ProcessAI()
+    {
+        aiInputTimer += Window.DeltaTime;
+        if (aiInputTimer < aiInputDelay) return;
+        aiInputTimer = 0;
+
+        if (_inputQueue.Count <= 0) return;
+
+        var inputType = _inputQueue.Dequeue();
+        switch (inputType)
+        {
+            case InputType.MoveLeft:
+                _game.TriggerLeft();
+                audio.PlayOneShot(resources.SfxMove);
+                break;
+            case InputType.MoveRight:
+                _game.TriggerRight();
+                audio.PlayOneShot(resources.SfxMove);
+                break;
+            case InputType.RotateLeft:
+                _game.TriggerRotateLeft();
+                audio.PlayOneShot(resources.SfxMove);
+                break;
+            case InputType.RotateRight:
+                _game.TriggerRotateRight();
+                audio.PlayOneShot(resources.SfxMove);
+                break;
+            case InputType.HardDrop:
+                _game.TriggerHardDrop();
+                audio.PlayOneShot(resources.SfxHardDrop);
+                break;
+            case InputType.Hold:
+                _game.TriggerHold();
+                audio.PlayOneShot(resources.SfxHold);
+                break;
+        }
+    }
+    
     /// <summary>
     /// ゲームオーバーの処理
     /// </summary>

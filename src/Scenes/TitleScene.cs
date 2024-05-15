@@ -79,6 +79,7 @@ public class TitleScene(
             ("40ライン（未実装）", () => { }),
             ("ミッション（未実装）", () => { }),
             ("DEATH OF G（未実装）", () => { }),
+            ("AI (β)", () => app.LoadScene<AIGameScene>()),
             ("←戻る", OnLeaveGameModeMenu)
         ];
         currentItems = mainMenuItems;
