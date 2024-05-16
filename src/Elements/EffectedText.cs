@@ -2,6 +2,7 @@
 using Promete;
 using Promete.Elements;
 using Promete.Graphics;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
@@ -16,11 +17,12 @@ public class EffectedText(
     public float EffectTime { get; set; }
 
     private float timer;
+    
+    private readonly IWindow window = PrometeApp.Current?.Window ?? throw new InvalidOperationException("Window is not initialized");
 
     protected override void OnUpdate()
     {
-        // TODO deltaTimeをなんとかして取得する
-        var deltaTime = (1 / 60f);
+        var deltaTime = window.DeltaTime;
         timer += deltaTime;
         
         if (timer > EffectTime)
