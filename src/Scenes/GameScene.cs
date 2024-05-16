@@ -18,8 +18,30 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
     private DefaultSoundPlugin _soundPlugin;
     
     private DefaultInputPlugin _inputPlugin;
+
+    private float _time = 0;
+
+    private int _level = 1;
+    private int _lines = 1;
+    private int _score = 0;
+
+    private int _placedPieces = 0;
+    private int _exp = 0;
+    
+    private const int ExpMax = 10;
     
     private readonly GameService _game = new(GameConfig.Default);
+
+    private string TimeString
+    {
+        get
+        {
+            var time = TimeSpan.FromSeconds(_time);
+            return $"{time.Hours:D2}:{time.Minutes:D2}:{time.Seconds:D2}:{time.Milliseconds:D3}";
+        }
+    }
+    
+    private float Pps => _placedPieces / _time;
 
     public override void OnStart()
     {
@@ -32,11 +54,19 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _inputPlugin = new DefaultInputPlugin(input, _game, audio, resources);
         
         _game.LineClear += OnLineClear;
+        _game.BlockPlace += OnBlockPlace;
         _game.GameOver += OnGameOver;
+
+        _game.Config.FallSpeed = CalculateSpeed(_level);
 
         _game.Start();
         audio.Gain = 0.3f;
         audio.Play(resources.BgmX030, resources.LoopX030);
+    }
+
+    private void OnBlockPlace()
+    {
+        _placedPieces++;
     }
 
     public override void OnUpdate()
@@ -53,8 +83,18 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
 
         if (_isPausingGame) return;
         _inputPlugin.Process(Window.DeltaTime);
+        _time += Window.DeltaTime;
         ProcessInput();
         _game.Tick(Window.DeltaTime);
+        
+        _gameBoard.ScoreboardLeft["TIME"] = TimeString;
+        _gameBoard.ScoreboardLeft["LEVEL"] = _level.ToString();
+        _gameBoard.ScoreboardLeft["LINES"] = _lines.ToString();
+        _gameBoard.ScoreboardLeft["SCORE"] = _score.ToString();
+        
+        _gameBoard.ScoreboardRight["PPS"] = Pps.ToString("F4");
+        _gameBoard.ScoreboardRight["FALL SPEED"] = _game.Config.FallSpeed.ToString("F3");
+        _gameBoard.ScoreboardRight["LINE TO NEXT"] = _exp.ToString();
     }
 
     public override void OnDestroy()
@@ -74,6 +114,14 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         var builder = new StringBuilder();
 
         if (e.IsTSpin) builder.AppendLine(e.IsTSpinMini ? "T-Spin Mini" : "T-Spin");
+        _lines += e.ClearedLines;
+        _exp += e.ClearedLines;
+        if (_exp >= ExpMax)
+        {
+            _level++;
+            _exp -= ExpMax;
+            _game.Config.FallSpeed = CalculateSpeed(_level);
+        }
 
         switch (e.ClearedLines)
         {
@@ -127,5 +175,11 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
         audio.Play(resources.SfxGameOver);
         Root.Add(gameoverText);
+    }
+
+    private static float CalculateSpeed(int level)
+    {
+        var lv = level - 1;
+        return 1 / MathF.Pow(0.8f - (lv * 0.007f), lv);
     }
 }

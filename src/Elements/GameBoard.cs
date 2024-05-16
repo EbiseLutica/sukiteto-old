@@ -3,6 +3,7 @@ using System.Drawing;
 using Promete;
 using Promete.Elements;
 using Promete.Graphics;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
@@ -16,7 +17,13 @@ public class GameBoard : ContainableElementBase
     private readonly BlockView _holdView;
     private readonly BlockView[] _nextViews;
 
-    private Text[] scoreTextElements = [];
+    public Dictionary<string, string> ScoreboardLeft { get; } = [];
+    public Dictionary<string, string> ScoreboardRight { get; } = [];
+
+    private readonly Text _scoreboardLeftText = new Text("");
+    private readonly Text _scoreboardRightText = new Text("");
+    
+    private readonly GlyphRenderer glyphRenderer = PrometeApp.Current?.GetPlugin<GlyphRenderer>() ?? throw new InvalidOperationException("Promete is not initialized");
 
     public GameBoard(GameService game)
     {
@@ -31,6 +38,10 @@ public class GameBoard : ContainableElementBase
             .Location(11 * 8, 32 - _game.Config.TopMargin * 16);
         _currentBlockMap = new Tilemap((16, 16))
             .Location(11 * 8, 32 - _game.Config.TopMargin * 16);
+        _scoreboardLeftText.Location = (0, 160);
+
+        var boardRight = (11 * 8) + 32 + _game.Config.FieldSize.X * 16;
+        _scoreboardRightText.Location = (boardRight + 64, 160);
         
         _nextViews = new BlockView[5];
         var nextViewX = (int)_fieldMap.Location.X + (_game.Config.FieldSize.X + 2) * 16 - 8;
@@ -50,6 +61,8 @@ public class GameBoard : ContainableElementBase
         children.Add(_holdView);
         children.Add(_fieldMap);
         children.Add(_currentBlockMap);
+        children.Add(_scoreboardLeftText);
+        children.Add(_scoreboardRightText);
         foreach (var blockView in _nextViews)
         {
             children.Add(blockView);
@@ -70,6 +83,7 @@ public class GameBoard : ContainableElementBase
     protected override void OnUpdate()
     {
         RenderCurrentBlock();
+        RenderScoreBoard();
     }
 
     protected override void OnDestroy()
@@ -177,5 +191,14 @@ public class GameBoard : ContainableElementBase
                 map[x + i, y + j] = tile;
             }
         }
+    }
+    
+    private void RenderScoreBoard()
+    {
+        var leftScore = string.Join("\n\n", ScoreboardLeft.Select(kv => $"{kv.Key}\n{kv.Value}"));
+        var bb = glyphRenderer.GetTextBounds(leftScore, _scoreboardLeftText.Font);
+        _scoreboardLeftText.Content = leftScore;
+        _scoreboardLeftText.Location = (11 * 8 - 32 - bb.Width, _scoreboardLeftText.Location.Y);
+        _scoreboardRightText.Content = string.Join("\n\n", ScoreboardRight.Select(kv => $"{kv.Key}\n{kv.Value}"));
     }
 }

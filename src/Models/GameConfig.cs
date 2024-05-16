@@ -21,7 +21,7 @@ public sealed class GameConfig
     public HoldModeFlag HoldMode { get; set; } = HoldModeFlag.Once;
 
     /// <summary>
-    /// ブロックの落下速度
+    /// ブロックの落下速度。単位は、1秒あたりの落下マス数。
     /// </summary>
     public float FallSpeed { get; set; } = 1f;
 
