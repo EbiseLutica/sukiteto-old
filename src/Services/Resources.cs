@@ -31,6 +31,7 @@ public class Resources
     public IAudioSource SfxHit { get; } = new WaveAudioSource("./assets/sounds/hit.wav");
     public IAudioSource SfxGameOver { get; } = new WaveAudioSource("./assets/sounds/gameover.wav");
     public IAudioSource SfxTspinRotate { get; } = new WaveAudioSource("./assets/sounds/tspin_rotate.wav");
+    public IAudioSource SfxInitial { get; } = new WaveAudioSource("./assets/sounds/initial.wav");
 
     private IWindow _window;
 

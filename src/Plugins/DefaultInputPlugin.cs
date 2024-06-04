@@ -3,13 +3,49 @@ using Promete.Windowing;
 
 namespace Sukiteto;
 
-public class DefaultInputPlugin(InputService input, GameService game, AudioPlayer audio, Resources resources)
+public class DefaultInputPlugin
 {
     public float Das { get; set; } = 1f / 60 * 10;
     
     public float Arr { get; set; } = 1f / 60 * 2;
     
     private float _dasTimer;
+
+    private bool _isInitialRotated;
+    
+    private readonly InputService _input;
+    private readonly GameService _game;
+    private readonly AudioPlayer _audio;
+    private readonly Resources _resources;
+
+    public DefaultInputPlugin(InputService input, GameService game, AudioPlayer audio, Resources resources)
+    {
+        _input = input;
+        _game = game;
+        _audio = audio;
+        _resources = resources;
+        
+        game.SpawnNext += OnSpawnNext;
+    }
+
+    private void OnSpawnNext()
+    {
+        // 先行回転
+        if (!_isInitialRotated)
+        {
+            if (_input[InputType.RotateLeft] && _game.TriggerRotateLeft())
+            {
+                _audio.PlayOneShot(_resources.SfxInitial);
+                _isInitialRotated = true;
+            }
+            else if (_input[InputType.RotateRight] && _game.TriggerRotateRight())
+            {
+                _audio.PlayOneShot(_resources.SfxInitial);
+                _isInitialRotated = true;
+            }
+        }
+
+    }
 
     public void Process(float deltaTime)
     {
@@ -23,44 +59,44 @@ public class DefaultInputPlugin(InputService input, GameService game, AudioPlaye
     private void ProcessDas(float deltaTime)
     {
         var moved = false;
-        if (input[InputType.MoveLeft].IsButtonDown) moved = game.TriggerLeft();
-        if (input[InputType.MoveRight].IsButtonDown) moved = game.TriggerRight();
+        if (_input[InputType.MoveLeft].IsButtonDown) moved = _game.TriggerLeft();
+        if (_input[InputType.MoveRight].IsButtonDown) moved = _game.TriggerRight();
 
-        if (input[InputType.MoveLeft].ElapsedTime >= Das)
+        if (_input[InputType.MoveLeft].ElapsedTime >= Das)
         {
             _dasTimer += deltaTime;
             if (_dasTimer > Arr)
             {
-                moved = game.TriggerLeft();
+                moved = _game.TriggerLeft();
                 _dasTimer = 0;
             }
         }
-        else if (input[InputType.MoveRight].ElapsedTime >= Das)
+        else if (_input[InputType.MoveRight].ElapsedTime >= Das)
         {
             _dasTimer += deltaTime;
             if (_dasTimer > Arr)
             {
-                moved = game.TriggerRight();
+                moved = _game.TriggerRight();
                 _dasTimer = 0;
             }
         }
 
-        if (input[InputType.SoftDrop])
+        if (_input[InputType.SoftDrop])
         {
             _dasTimer += deltaTime;
             if (_dasTimer > Arr)
             {
-                moved = game.TriggerDown();
+                moved = _game.TriggerDown();
                 _dasTimer = 0;
             }
         }
         
-        if (!input[InputType.MoveLeft] && !input[InputType.MoveRight] && !input[InputType.SoftDrop])
+        if (!_input[InputType.MoveLeft] && !_input[InputType.MoveRight] && !_input[InputType.SoftDrop])
         {
             _dasTimer = 0;
         }
         
-        if (moved) audio.PlayOneShot(resources.SfxMove);
+        if (moved) _audio.PlayOneShot(_resources.SfxMove);
     }
 
     /// <summary>
@@ -68,28 +104,33 @@ public class DefaultInputPlugin(InputService input, GameService game, AudioPlaye
     /// </summary>
     private void ProcessInput()
     {
-        if (input[InputType.HardDrop].IsButtonDown)
+        if (_input[InputType.HardDrop].IsButtonDown)
         {
-            game.TriggerHardDrop();
-            audio.PlayOneShot(resources.SfxHardDrop);
+            _game.TriggerHardDrop();
+            _audio.PlayOneShot(_resources.SfxHardDrop);
         }
 
         // 左回転
-        if (input[InputType.RotateLeft].IsButtonDown && game.TriggerRotateLeft())
+        if (_input[InputType.RotateLeft].IsButtonDown && _game.TriggerRotateLeft())
         {
-            audio.PlayOneShot(resources.SfxMove);
+            _audio.PlayOneShot(_resources.SfxMove);
         }
         
         // 右回転
-        if (input[InputType.RotateRight].IsButtonDown && game.TriggerRotateRight())
+        if (_input[InputType.RotateRight].IsButtonDown && _game.TriggerRotateRight())
         {
-            audio.PlayOneShot(resources.SfxMove);
+            _audio.PlayOneShot(_resources.SfxMove);
+        }
+        
+        if (_input[InputType.RotateLeft].IsButtonUp || _input[InputType.RotateRight].IsButtonUp)
+        {
+            _isInitialRotated = false;
         }
         
         // ホールド
-        if (input[InputType.Hold].IsButtonDown && game.TriggerHold())
+        if (_input[InputType.Hold].IsButtonDown && _game.TriggerHold())
         {
-            audio.PlayOneShot(resources.SfxHold);
+            _audio.PlayOneShot(_resources.SfxHold);
         }
     }
 }
