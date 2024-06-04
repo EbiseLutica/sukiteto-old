@@ -13,28 +13,30 @@ public class ArcadeRotationSystem : IRotationSystem
 
     public VectorInt? TryKick(GameService game, BlockColor color, VectorInt currentPosition, int currentRotation, int nextRotation)
     {
-        foreach (var kick in _kicks)
-        {
-            var (x, y) = currentPosition + kick;
-            var result = CanPlaceBlockEx(game, color, x, y, Shapes[color][nextRotation]);
-            if (result == PlaceableResult.Placeable) return kick;
-            if (result == PlaceableResult.Unkickable) break;
-        }
+        var (x, y) = currentPosition;
+        var shape = Shapes[color][nextRotation];
 
+        var result = CanPlaceBlockEx(game, color, x, y, shape);
+        if (result == PlaceableResult.Placeable) return (0, 0);
+        if (result == PlaceableResult.Unkickable) return null;
+        
+        if (CanPlaceBlockEx(game, color, x + 1, y, shape) == PlaceableResult.Placeable) return (1, 0);
+        if (CanPlaceBlockEx(game, color, x - 1, y, shape) == PlaceableResult.Placeable) return (-1, 0);
         return null;
     }
 
     private PlaceableResult CanPlaceBlockEx(GameService game, BlockColor color, int x, int y, bool[,] blockShape)
     {
         var (w, h) = game.Config.FieldSize + (0, game.Config.TopMargin);
-        for (var i = 0; i < blockShape.GetLength(0); i++)
+        for (var iy = 0; iy < blockShape.GetLength(1); iy++)
         {
-            var failureResult = color == BlockColor.I || i == 1 ? PlaceableResult.Unkickable : PlaceableResult.Kickable;
-            for (var j = 0; j < blockShape.GetLength(1); j++)
+            for (var ix = 0; ix < blockShape.GetLength(0); ix++)
             {
-                if (!blockShape[i, j]) continue;
-                if (x + i < 0 || x + i >= w || y + j < 0 || y + j >= h) return failureResult;
-                if (game.Field[x + i, y + j] != BlockColor.None) return failureResult;
+                var isCenterColumn = ix == 1 && color is BlockColor.L or BlockColor.J or BlockColor.T;
+                var failureResult = color == BlockColor.I || isCenterColumn ? PlaceableResult.Unkickable : PlaceableResult.Kickable;
+                if (!blockShape[ix, iy]) continue;
+                if (x + ix < 0 || x + ix >= w || y + iy < 0 || y + iy >= h) return failureResult;
+                if (game.Field[x + ix, y + iy] != BlockColor.None) return failureResult;
             }
         }
 
