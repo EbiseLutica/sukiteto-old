@@ -11,8 +11,6 @@ public class DefaultInputPlugin
     
     private float _dasTimer;
 
-    private bool _isInitialRotated;
-    
     private readonly InputService _input;
     private readonly GameService _game;
     private readonly AudioPlayer _audio;
@@ -31,20 +29,14 @@ public class DefaultInputPlugin
     private void OnSpawnNext()
     {
         // 先行回転
-        if (!_isInitialRotated)
+        if (_input[InputType.RotateLeft] && _game.TriggerRotateLeft())
         {
-            if (_input[InputType.RotateLeft] && _game.TriggerRotateLeft())
-            {
-                _audio.PlayOneShot(_resources.SfxInitial);
-                _isInitialRotated = true;
-            }
-            else if (_input[InputType.RotateRight] && _game.TriggerRotateRight())
-            {
-                _audio.PlayOneShot(_resources.SfxInitial);
-                _isInitialRotated = true;
-            }
+            _audio.PlayOneShot(_resources.SfxInitial);
         }
-
+        else if (_input[InputType.RotateRight] && _game.TriggerRotateRight())
+        {
+            _audio.PlayOneShot(_resources.SfxInitial);
+        }
     }
 
     public void Process(float deltaTime)
@@ -120,11 +112,6 @@ public class DefaultInputPlugin
         if (_input[InputType.RotateRight].IsButtonDown && _game.TriggerRotateRight())
         {
             _audio.PlayOneShot(_resources.SfxMove);
-        }
-        
-        if (_input[InputType.RotateLeft].IsButtonUp || _input[InputType.RotateRight].IsButtonUp)
-        {
-            _isInitialRotated = false;
         }
         
         // ホールド
