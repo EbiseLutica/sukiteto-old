@@ -68,18 +68,18 @@ public class TitleScene(
         mainMenuItems =
         [
             ("ゲームをはじめる", OnEnterGameModeMenu),
-            ("設定", () => app.LoadScene<ConfigScene>()),
+            ("設定", () => { }),
             ("ウィンドウを閉じる", () => app.Exit()),
         ];
 
         gamemodeMenuItems =
         [
-            ("150マラソン", () => app.LoadScene<GameScene>()),
-            ("エンドレス", () => app.LoadScene<GameScene>()),
+            ("150マラソン", app.LoadScene<GameScene>),
+            ("エンドレス（未実装）", () => { }),
             ("40ライン（未実装）", () => { }),
             ("ミッション（未実装）", () => { }),
-            ("DEATH OF G（未実装）", () => { }),
-            ("AI (β)", () => app.LoadScene<AIGameScene>()),
+            ("DEATH OF G（Alpha）", app.LoadScene<DeathGameScene>),
+            ("AI (β)", app.LoadScene<AIGameScene>),
             ("←戻る", OnLeaveGameModeMenu)
         ];
         currentItems = mainMenuItems;
