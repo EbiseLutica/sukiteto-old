@@ -522,7 +522,7 @@ public class GameService
             for (var j = 0; j < blockShape.GetLength(1); j++)
             {
                 if (!blockShape[i, j]) continue;
-                Field[x + i, y + j] = blockColor;
+                Field[x + i, y + j] = Shapes.ColorMap[blockColor];
             }
         }
 

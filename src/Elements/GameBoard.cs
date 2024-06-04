@@ -156,7 +156,7 @@ public class GameBoard : ContainableElementBase
         var ghostY = _game.RayToDown();
         var pos = _game.BlockPosition;
         RenderBlockToTilemap(pos.X, ghostY, _game.CurrentShape, BlockColor.Ghost, _currentBlockMap);
-        RenderBlockToTilemap(pos.X, pos.Y, _game.CurrentShape, _game.CurrentBlockColor, _currentBlockMap);
+        RenderBlockToTilemap(pos.X, pos.Y, _game.CurrentShape, _game.Shapes.ColorMap[_game.CurrentBlockColor], _currentBlockMap);
     }
 
     /// <summary>

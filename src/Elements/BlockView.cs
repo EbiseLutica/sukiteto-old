@@ -41,7 +41,7 @@ public class BlockView : ContainableElementBase
             {
                 if (shape[x, y])
                 {
-                    _tilemap.SetTile(x, y, _blockTiles[_blockType]);
+                    _tilemap.SetTile(x, y, _blockTiles[_shapes.ColorMap[_blockType]]);
                 }
             }
         }

@@ -64,8 +64,6 @@ public sealed class GameConfig
     /// </summary>
     public int LockDelayResetMaxCount { get; set; } = 15;
     
-    private GameConfig() { }
-
     public static GameConfig Default => new();
 
     public static GameConfig Classic => new()
