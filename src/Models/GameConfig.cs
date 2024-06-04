@@ -7,7 +7,7 @@ public sealed class GameConfig
     /// <summary>
     /// フィールドのサイズ
     /// </summary>
-    public VectorInt FieldSize { get; init; } = (10, 20);
+    public VectorInt FieldSize { get; set; } = (10, 20);
 
     /// <summary>
     /// 窒息高度より上にどれくらい積めるか。

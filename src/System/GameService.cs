@@ -78,6 +78,7 @@ public class GameService
             var height = mapLines.Length;
             var width = mapLines.Max(line => line.Length);
             Field = new BlockColor[width, height + config.TopMargin];
+            config.FieldSize = (width, height);
 
             for (var y = 0; y < mapLines.Length; y++)
             {
