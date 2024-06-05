@@ -39,14 +39,14 @@ public class GameService
     public bool UsedHold { get; set; }
 
     /// <summary>
+    /// 固定のタイマー
+    /// </summary>
+    public float LockTimer { get; private set; }
+
+    /// <summary>
     /// 自由落下のタイマー
     /// </summary>
     private float freefallDistance;
-
-    /// <summary>
-    /// 固定のタイマー
-    /// </summary>
-    private float lockTimer;
 
     /// <summary>
     /// 固定猶予リセットカウンター
@@ -143,7 +143,7 @@ public class GameService
     public void TriggerHardDrop()
     {
         BlockPosition = (BlockPosition.X, RayToDown());
-        lockTimer = Config.LockDelay;
+        LockTimer = Config.LockDelay;
         ProcessFix(0);
     }
     
@@ -242,7 +242,7 @@ public class GameService
     /// </summary>
     private void ProcessFreefall(float deltaTime = 0)
     {
-        if (lockTimer > 0) return;
+        if (LockTimer > 0) return;
 
         var currentTop = RayToDown();
 
@@ -272,15 +272,15 @@ public class GameService
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape))
         {
-            if (lockTimer == 0) BlockHit?.Invoke();
-            lockTimer += deltaTime;
+            if (LockTimer == 0) BlockHit?.Invoke();
+            LockTimer += deltaTime;
         }
-        else if (lockTimer > 0)
+        else if (LockTimer > 0)
         {
             ResetFix();
         }
         
-        if (lockTimer < Config.LockDelay && lockResetCounter < Config.LockDelayResetMaxCount) return;
+        if (LockTimer < Config.LockDelay && lockResetCounter < Config.LockDelayResetMaxCount) return;
         BlockPosition = (BlockPosition.X, RayToDown());
         PlaceBlock(BlockPosition.X, BlockPosition.Y, CurrentShape, CurrentBlockColor);
         ProcessLineClear();
@@ -504,8 +504,8 @@ public class GameService
     /// </summary>
     private void ResetFix()
     {
-        if (lockTimer == 0) return;
-        lockTimer = 0;
+        if (LockTimer == 0) return;
+        LockTimer = 0;
         lockResetCounter++;
     }
 
@@ -536,7 +536,7 @@ public class GameService
     private void ResetStateForSpawning()
     {
         lockResetCounter = 0;
-        lockTimer = 0;
+        LockTimer = 0;
         BlockPosition = (Config.FieldSize.X / 2 - 2, Math.Max(0, Config.TopMargin - 3));
         BlockRotation = 0;
         isTspin = false;

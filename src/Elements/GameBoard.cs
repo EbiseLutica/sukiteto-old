@@ -9,6 +9,7 @@ namespace Sukiteto;
 
 public class GameBoard : ContainableElementBase
 {
+    private const int FieldBlockBrightness = 160;
     private readonly GameService _game;
     private readonly Dictionary<BlockColor, ITile> _blockTiles;
     private readonly Tilemap _fieldMap;
@@ -145,7 +146,8 @@ public class GameBoard : ContainableElementBase
         {
             for (var y = 0; y < config.FieldSize.Y + config.TopMargin; y++)
             {
-                _fieldMap[x, y] = _game.Field[x, y] == BlockColor.None ? null : _blockTiles[_game.Field[x, y]];
+                var tile = _game.Field[x, y] == BlockColor.None ? null : _blockTiles[_game.Field[x, y]];
+                _fieldMap.SetTile(x, y, tile, Color.FromArgb(FieldBlockBrightness, FieldBlockBrightness, FieldBlockBrightness));
             }
         }
     }
@@ -156,7 +158,8 @@ public class GameBoard : ContainableElementBase
         var ghostY = _game.RayToDown();
         var pos = _game.BlockPosition;
         RenderBlockToTilemap(pos.X, ghostY, _game.CurrentShape, BlockColor.Ghost, _currentBlockMap);
-        RenderBlockToTilemap(pos.X, pos.Y, _game.CurrentShape, _game.Shapes.ColorMap[_game.CurrentBlockColor], _currentBlockMap);
+        var brightness = _game.Config.LockDelay == 0 ? 255 : 255 - (int)((255 - FieldBlockBrightness) * (_game.LockTimer / _game.Config.LockDelay));
+        RenderBlockToTilemap(pos.X, pos.Y, _game.CurrentShape, _game.Shapes.ColorMap[_game.CurrentBlockColor], _currentBlockMap, brightness);
     }
 
     /// <summary>
@@ -180,7 +183,7 @@ public class GameBoard : ContainableElementBase
     /// <param name="blockShape">ブロック形状</param>
     /// <param name="blockColor">ブロックの色</param>
     /// <param name="map">タイルマップ</param>
-    private void RenderBlockToTilemap(int x, int y, bool[,] blockShape, BlockColor blockColor, Tilemap map)
+    private void RenderBlockToTilemap(int x, int y, bool[,] blockShape, BlockColor blockColor, Tilemap map, int brightness = 255)
     {
         var tile = _blockTiles[blockColor];
         for (var i = 0; i < blockShape.GetLength(0); i++)
@@ -188,7 +191,7 @@ public class GameBoard : ContainableElementBase
             for (var j = 0; j < blockShape.GetLength(1); j++)
             {
                 if (!blockShape[i, j]) continue;
-                map[x + i, y + j] = tile;
+                map.SetTile(x + i, y + j, tile, Color.FromArgb(brightness, brightness, brightness));
             }
         }
     }
