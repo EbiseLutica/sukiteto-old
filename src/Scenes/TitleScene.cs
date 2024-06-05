@@ -10,13 +10,11 @@ public class TitleScene(
     PrometeApp app,
     IWindow window,
     Resources resources,
-    InputService input) : Scene
+    InputService input,
+    UIService ui) : Scene
 {
     private Text menu;
     private int index;
-    private (string, Action)[] mainMenuItems;
-    private (string, Action)[] gamemodeMenuItems;
-    private (string, Action)[] currentItems;
 
     public override void OnStart()
     {
@@ -25,27 +23,11 @@ public class TitleScene(
         App.BackgroundColor = Color.FromArgb(20, 20, 20);
 
         InitializeUI();
-        InitializeMenuItems();
     }
 
     public override void OnUpdate()
     {
-        if (input[InputType.MenuUp].IsButtonUp)
-        {
-            index--;
-            if (index < 0) index = currentItems.Length - 1;
-            UpdateMenu();
-        }
-        if (input[InputType.MenuDown].IsButtonUp)
-        {
-            index++;
-            if (index >= currentItems.Length) index = 0;
-            UpdateMenu();
-        }
-        if (input[InputType.Ok].IsButtonUp)
-        {
-            currentItems[index].Item2();
-        }
+        menu.Content = ui.Render();
     }
     
     private void InitializeUI()
@@ -61,49 +43,29 @@ public class TitleScene(
         copyright.Location = (window.Width - copyright.Width - 2, window.Height - copyright.Height - 2);
 
         Root.AddRange(logo, menu, copyright);
-    }
-    
-    private void InitializeMenuItems()
-    {
-        mainMenuItems =
-        [
-            ("ゲームをはじめる", OnEnterGameModeMenu),
-            ("設定", () => { }),
-            ("ウィンドウを閉じる", () => app.Exit()),
-        ];
-
-        gamemodeMenuItems =
-        [
-            ("150マラソン", app.LoadScene<GameScene>),
-            ("エンドレス（未実装）", () => { }),
-            ("40ライン（未実装）", () => { }),
-            ("ミッション（未実装）", () => { }),
-            ("DEATH OF G（Alpha）", app.LoadScene<DeathGameScene>),
-            ("AI (β)", app.LoadScene<AIGameScene>),
-            ("←戻る", OnLeaveGameModeMenu)
-        ];
-        currentItems = mainMenuItems;
-
-        UpdateMenu();
+        
+        ShowMainMenu();
     }
 
-    private void UpdateMenu()
+    private void ShowMainMenu()
     {
-        var itemContents = currentItems.Select((item, i) => $"{(index == i ? "→" : "　")} {item.Item1}");
-        menu.Content = string.Join('\n', itemContents);
+        ui.Show([
+            new UIItemButton("ゲームをはじめる", ShowGameModeMenu),
+            new UIItemButton("設定", app.LoadScene<ConfigScene>),
+            new UIItemButton("ウィンドウを閉じる", () => app.Exit())
+        ]);
     }
     
-    private void OnEnterGameModeMenu()
+    private void ShowGameModeMenu()
     {
-        currentItems = gamemodeMenuItems;
-        index = 0;
-        UpdateMenu();
-    }
-    
-    private void OnLeaveGameModeMenu()
-    {
-        currentItems = mainMenuItems;
-        index = 0;
-        UpdateMenu();
+        ui.Show([
+            new UIItemButton("150マラソン", app.LoadScene<GameScene>),
+            new UIItemButton("エンドレス（未実装）", () => { }),
+            new UIItemButton("40ライン（未実装）", () => { }),
+            new UIItemButton("ミッション（未実装）", () => { }),
+            new UIItemButton("DEATH OF G（Alpha）", app.LoadScene<DeathGameScene>),
+            new UIItemButton("AI (β)", app.LoadScene<AIGameScene>),
+            new UIItemButton("←戻る", ShowMainMenu)
+        ]);
     }
 }
