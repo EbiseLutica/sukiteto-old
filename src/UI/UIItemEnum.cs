@@ -1,8 +1,8 @@
 ﻿namespace Sukiteto;
 
-public class UIItemEnum<T>(string label, Func<T> value, Action<T>? onValueChange) : UIItemBase where T : struct, Enum
+public class UIItemEnum<T>(string label, Func<T> value, Action<T>? onValueChange, Func<string>? valueLabel = null) : UIItemBase where T : struct, Enum
 {
-    public override string Render() => $"{label,-100} {value()}";
+    public override string Render() => $"{label}: {valueLabel?.Invoke() ?? value().ToString()}";
 
     public override void OnLeftPress()
     {

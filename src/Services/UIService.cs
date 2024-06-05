@@ -1,4 +1,5 @@
-﻿using Promete.Windowing;
+﻿using Promete;
+using Promete.Windowing;
 
 namespace Sukiteto;
 
@@ -9,11 +10,16 @@ public class UIService
     private int _cursorIndex = 0;
     private readonly InputService _input;
 
-    public UIService(InputService input, IWindow window)
+    public UIService(InputService input, IWindow window, PrometeApp app)
     {
         _input = input;
         window.Update += Tick;
         window.Destroy -= Tick;
+        
+        app.SceneWillChange += () =>
+        {
+            Show();
+        };
     }
 
     public void Show(params UIItemBase[] items)
@@ -31,6 +37,7 @@ public class UIService
 
     private void Tick()
     {
+        if (items.Count == 0) return;
         if (_input[InputType.MenuUp].IsButtonDown)
         {
             items[_cursorIndex].OnCursorLeave();

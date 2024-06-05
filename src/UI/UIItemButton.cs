@@ -1,6 +1,6 @@
 ﻿namespace Sukiteto;
 
-public class UIItemButton(string label, Action? onSelect) : UIItemBase
+public class UIItemButton(string label, Action? onSelect = null) : UIItemBase
 {
     public override string Render() => label;
 
