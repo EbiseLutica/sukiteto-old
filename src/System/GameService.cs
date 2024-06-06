@@ -447,7 +447,7 @@ public class GameService
     /// </summary>
     private void EnqueueNexts()
     {
-        foreach (var type in Config.UsingBlocks.OrderBy(_ => Random.Next()))
+        foreach (var type in Config.RandomGenerator.Generate(Config.UsingBlocks))
         {
             NextQueue.Enqueue(type);
         }

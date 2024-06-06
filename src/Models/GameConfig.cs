@@ -1,4 +1,5 @@
 ﻿using Promete;
+using Sukiteto.RandomGenerators;
 
 namespace Sukiteto;
 
@@ -19,6 +20,11 @@ public sealed class GameConfig
     /// ホールドのモード
     /// </summary>
     public HoldModeFlag HoldMode { get; set; } = HoldModeFlag.Once;
+    
+    /// <summary>
+    /// ランダムジェネレータの種類
+    /// </summary>
+    public IRandomGenerator RandomGenerator { get; set; } = new SevenBagRandomGenerator();
 
     /// <summary>
     /// ブロックの落下速度。単位は、1秒あたりの落下マス数。
@@ -71,6 +77,7 @@ public sealed class GameConfig
         FallSpeed = 0.5f,
         LockDelayResetMaxCount = 0,
         RotationSystem = new ClassicRotationSystem(),
+        RandomGenerator = new ClassicRandomGenerator(),
         HoldMode = HoldModeFlag.None,
     };
 
