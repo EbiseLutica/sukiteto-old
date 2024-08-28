@@ -1,0 +1,10 @@
+﻿# デフォルトの無視対象ファイル
+/shelf/
+/workspace.xml
+# Rider の無視対象ファイル
+/modules.xml
+/contentModel.xml
+/projectSettingsUpdater.xml
+/.idea.Quadrix.iml
+# エディターベースの HTTP クライアントリクエスト
+/httpRequests/
