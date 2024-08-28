@@ -5,18 +5,15 @@ using Promete.Audio;
 using Promete.Elements;
 using Promete.Graphics;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class GameScene(AudioPlayer audio, Resources resources, InputService input) : Scene
 {
     private bool _isGameOver;
-
     private bool _isPausingGame = false;
 
     private GameBoard _gameBoard;
-    
     private DefaultSoundPlugin _soundPlugin;
-    
     private DefaultInputPlugin _inputPlugin;
 
     private float _time = 0;
@@ -45,11 +42,6 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
 
     public override void OnStart()
     {
-        _gameBoard = new GameBoard(_game);
-        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
-        _gameBoard.Location = mapLocation;
-        Root.Add(_gameBoard);
-        
         _soundPlugin = new DefaultSoundPlugin(_game, audio, resources);
         _inputPlugin = new DefaultInputPlugin(input, _game, audio, resources);
         
@@ -58,6 +50,11 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _game.GameOver += OnGameOver;
 
         _game.Config.FallSpeed = CalculateSpeed(_level);
+
+        _gameBoard = new GameBoard(_game);
+        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
+        _gameBoard.Location = mapLocation;
+        Root.Add(_gameBoard);
 
         _game.Start();
         audio.Gain = 0.3f;
@@ -123,6 +120,12 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
             _game.Config.FallSpeed = CalculateSpeed(_level);
         }
 
+        if (_lines >= 150)
+        {
+            _isGameOver = true;
+            ProcessGameClear();
+        }
+
         switch (e.ClearedLines)
         {
             case >= 4:
@@ -175,6 +178,17 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         gameoverText.Location = (640 / 2 - gameoverText.Width / 2, 480 / 2 - gameoverText.Height / 2);
         audio.Play(resources.SfxGameOver);
         Root.Add(gameoverText);
+    }
+
+    /// <summary>
+    /// ゲームクリアの処理
+    /// </summary>
+    private void ProcessGameClear()
+    {
+        audio.Stop();
+        var gameClearText = new Text("GAME CLEAR!!", Font.GetDefault(64, FontStyle.Normal), Color.Turquoise);
+        gameClearText.Location = (640 / 2 - gameClearText.Width / 2, 480 / 2 - gameClearText.Height / 2);
+        Root.Add(gameClearText);
     }
 
     private static float CalculateSpeed(int level)
