@@ -1,4 +1,4 @@
-﻿namespace Sukiteto;
+﻿namespace Quadrix;
 
 public class UIItemCheckbox(string label, Func<bool> isChecked, Action<bool>? onCheck) : UIItemBase
 {

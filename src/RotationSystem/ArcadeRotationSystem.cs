@@ -1,6 +1,6 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 /// <summary>
 /// アーケードゲーム風の回転法則。

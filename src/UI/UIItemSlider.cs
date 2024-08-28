@@ -1,4 +1,4 @@
-﻿namespace Sukiteto;
+﻿namespace Quadrix;
 
 public class UIItemSlider(string label, Func<int> value, Action<int>? onValueChange, Func<string>? valueLabel = null) : UIItemBase
 {

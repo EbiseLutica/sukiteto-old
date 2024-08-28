@@ -1,4 +1,4 @@
-﻿namespace Sukiteto;
+﻿namespace Quadrix;
 
 public class UIItemButton(string label, Action? onSelect = null) : UIItemBase
 {

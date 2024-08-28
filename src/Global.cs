@@ -1,8 +1,8 @@
 using Promete.Audio;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public static class Global
 {
-    public static readonly string Version = "1.0.0-alpha.2";
+    public static readonly string Version = "1.0.0-alpha.3";
 }

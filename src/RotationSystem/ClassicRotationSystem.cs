@@ -1,6 +1,6 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 /// <summary>
 /// 補正の無い回転システム。

@@ -5,7 +5,7 @@ using Promete.Elements;
 using Promete.Graphics;
 using Promete.Input;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class Button : ContainableElementBase
 {

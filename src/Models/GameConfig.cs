@@ -1,7 +1,6 @@
 ﻿using Promete;
-using Sukiteto.RandomGenerators;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public sealed class GameConfig
 {
@@ -78,6 +77,7 @@ public sealed class GameConfig
         LockDelayResetMaxCount = 0,
         RotationSystem = new ClassicRotationSystem(),
         RandomGenerator = new ClassicRandomGenerator(),
+        TopMargin = 0,
         HoldMode = HoldModeFlag.None,
     };
 

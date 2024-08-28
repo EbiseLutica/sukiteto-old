@@ -2,7 +2,7 @@
 using Promete.Audio;
 using Promete.GLDesktop;
 using Promete.Input;
-using Sukiteto;
+using Quadrix;
 
 var app = PrometeApp.Create()
     .Use<Keyboard>()

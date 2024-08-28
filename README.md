@@ -1,4 +1,4 @@
-﻿# SUKITETO
+﻿# Quadrix
 
 いわゆる積みゲー
 

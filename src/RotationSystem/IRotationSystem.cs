@@ -1,9 +1,9 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 /// <summary>
-/// Sukitetoにおける回転システムのインターフェース。
+/// Quadrixにおける回転システムのインターフェース。
 /// </summary>
 public interface IRotationSystem
 {

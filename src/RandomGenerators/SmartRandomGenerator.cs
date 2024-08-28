@@ -1,4 +1,4 @@
-﻿namespace Sukiteto.RandomGenerators;
+﻿namespace Quadrix;
 
 /// <summary>
 /// 指定した数の生成履歴を持ち、履歴に含まれるピースを避けるランダムジェネレータ

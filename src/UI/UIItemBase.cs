@@ -1,4 +1,4 @@
-﻿namespace Sukiteto;
+﻿namespace Quadrix;
 
 public abstract class UIItemBase
 {

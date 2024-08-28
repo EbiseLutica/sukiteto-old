@@ -1,4 +1,4 @@
-﻿SUKITETO
+﻿Quadrix
 ============
 
 いわゆる積みゲー
@@ -7,7 +7,7 @@
 起動方法
 ------------
 
-app/sukiteto.exe を実行
+app/Quadrix.exe を実行
 
 
 操作方法

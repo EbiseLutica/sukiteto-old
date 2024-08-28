@@ -2,7 +2,7 @@
 using Promete.Elements;
 using Promete.Graphics;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class BlockView : ContainableElementBase
 {

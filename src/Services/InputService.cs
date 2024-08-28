@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Promete.Input;
 using Promete.Windowing;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class InputService
 {

@@ -1,4 +1,4 @@
-﻿namespace Sukiteto.RandomGenerators;
+﻿namespace Quadrix;
 
 /// <summary>
 /// 補正のないランダムジェネレータ

@@ -1,6 +1,6 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class GameService
 {

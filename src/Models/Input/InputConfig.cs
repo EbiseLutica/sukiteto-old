@@ -1,6 +1,6 @@
 ﻿using Promete.Input;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class InputConfig
 {

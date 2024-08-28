@@ -1,4 +1,4 @@
-﻿namespace Sukiteto.RandomGenerators;
+﻿namespace Quadrix;
 
 /// <summary>
 /// 7種1巡の法則に従ってピースを生成するランダムジェネレータ

@@ -1,6 +1,6 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 /// <summary>
 /// ガイドライン標準の回転システム。

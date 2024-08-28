@@ -1,4 +1,4 @@
-﻿namespace Sukiteto.RandomGenerators;
+﻿namespace Quadrix;
 
 public interface IRandomGenerator
 {

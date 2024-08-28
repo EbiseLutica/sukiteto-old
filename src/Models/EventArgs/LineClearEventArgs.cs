@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class LineClearEventArgs : EventArgs
 {

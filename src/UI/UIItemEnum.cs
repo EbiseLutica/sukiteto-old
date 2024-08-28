@@ -1,4 +1,4 @@
-﻿namespace Sukiteto;
+﻿namespace Quadrix;
 
 public class UIItemEnum<T>(string label, Func<T> value, Action<T>? onValueChange, Func<string>? valueLabel = null) : UIItemBase where T : struct, Enum
 {

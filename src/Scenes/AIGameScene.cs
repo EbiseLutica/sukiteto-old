@@ -5,7 +5,7 @@ using Promete.Audio;
 using Promete.Elements;
 using Promete.Graphics;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class AIGameScene(AudioPlayer audio, Resources resources, InputService input) : Scene
 {

@@ -1,7 +1,7 @@
 ﻿using Promete.Audio;
 using Promete.Windowing;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class DefaultInputPlugin
 {

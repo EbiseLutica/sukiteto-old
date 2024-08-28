@@ -1,6 +1,6 @@
 ﻿using Promete;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 /// <summary>
 /// エンジョイジョイできそうな回転システム。

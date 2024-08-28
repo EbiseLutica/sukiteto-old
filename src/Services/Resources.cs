@@ -2,7 +2,7 @@ using Promete.Audio;
 using Promete.Graphics;
 using Promete.Windowing;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class Resources
 {

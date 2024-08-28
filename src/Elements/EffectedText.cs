@@ -4,7 +4,7 @@ using Promete.Elements;
 using Promete.Graphics;
 using Promete.Windowing;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class EffectedText(
     string text,

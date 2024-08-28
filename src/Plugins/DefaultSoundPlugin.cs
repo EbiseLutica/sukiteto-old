@@ -1,6 +1,6 @@
 ﻿using Promete.Audio;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class DefaultSoundPlugin : IDisposable
 {

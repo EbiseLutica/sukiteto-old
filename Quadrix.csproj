@@ -5,19 +5,19 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Sukiteto</AssemblyName>
-    <RootNamespace>Sukiteto</RootNamespace>
+    <AssemblyName>Quadrix</AssemblyName>
+    <RootNamespace>Quadrix</RootNamespace>
     <LangVersion>12</LangVersion>
-    <Title>SUKITETO</Title>
+    <Title>Quadrix</Title>
     <Authors>Ebise Lutica</Authors>
     <Description>A Stacker Game</Description>
     <Copyright>(C)2023 Ebise Lutica</Copyright>
     <Company>Ebise Lutica</Company>
-    <Product>SUKITETO</Product>
+    <Product>Quadrix</Product>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Promete" Version="0.13.1" />
+    <PackageReference Include="Promete" Version="0.13.3" />
   </ItemGroup>
 
   <ItemGroup>
