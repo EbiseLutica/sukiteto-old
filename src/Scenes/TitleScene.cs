@@ -18,7 +18,7 @@ public class TitleScene(
 
     public override void OnStart()
     {
-        window.Title = "Sukiteto";
+        window.Title = "Quadrix";
         window.Size = (640, 480);
         App.BackgroundColor = Color.FromArgb(20, 20, 20);
 
