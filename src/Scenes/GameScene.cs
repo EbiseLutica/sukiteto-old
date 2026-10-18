@@ -26,8 +26,27 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
     private int _exp = 0;
     
     private const int ExpMax = 10;
+
+    private int _startCount = 5;
+    private float _startTimer = 0;
+
+    private readonly Text _countdownTimerText = new Text("", Font.GetDefault(64, FontStyle.Normal), Color.White);
+
+    private readonly IRotationSystem[] _rotationSystems = [
+        new StandardRotationSystem(),
+        new QuadrixRotationSystem(),
+        new ArcadeRotationSystem(),
+        new ClassicRotationSystem(),
+        new JoyjoyRotationSystem(),
+    ];
+
+    private int _rotationSystemIndex = 0;
     
-    private readonly GameService _game = new(GameConfig.Default);
+    private readonly GameService _game = new(new GameConfig
+    {
+        RotationSystem = new StandardRotationSystem(),
+        // RandomGenerator = new SmartRandomGenerator(3),
+    });
 
     private string TimeString
     {
@@ -56,9 +75,10 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _gameBoard.Location = mapLocation;
         Root.Add(_gameBoard);
 
-        _game.Start();
-        audio.Gain = 0.3f;
-        audio.Play(resources.BgmX030, resources.LoopX030);
+        _countdownTimerText.Content = _startCount.ToString();
+        _countdownTimerText.Location = Window.Size / 2 - (64, 64);
+        Root.Add(_countdownTimerText);
+        audio.PlayOneShot(resources.SfxCounts[5]);
     }
 
     private void OnBlockPlace()
@@ -74,16 +94,72 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
             {
                 App.LoadScene<TitleScene>();
             }
-
             return;
+        }
+        UpdateScoreboard();
+        ProcessInput();
+
+        if (_startCount > 0)
+        {
+            if (input[InputType.MoveLeft].IsButtonDown)
+            {
+                _rotationSystemIndex--;
+                if (_rotationSystemIndex < 0) 
+                    _rotationSystemIndex = _rotationSystems.Length - 1;
+                _game.Config.RotationSystem = _rotationSystems[_rotationSystemIndex];
+                audio.PlayOneShot(resources.SfxLineClear);
+            }
+            else if (input[InputType.MoveRight].IsButtonDown)
+            {
+                _rotationSystemIndex++;
+                if (_rotationSystemIndex >= _rotationSystems.Length) 
+                    _rotationSystemIndex = 0;
+                _game.Config.RotationSystem = _rotationSystems[_rotationSystemIndex];
+                audio.PlayOneShot(resources.SfxLineClear);
+            }
+        }
+
+        if (_startCount > -1)
+        {
+            ProcessCountdown();
+            if (_startCount > 0) return;
         }
 
         if (_isPausingGame) return;
         _inputPlugin.Process(Window.DeltaTime);
         _time += Window.DeltaTime;
-        ProcessInput();
         _game.Tick(Window.DeltaTime);
-        
+    }
+
+    private void ProcessCountdown()
+    {
+        _startTimer += Window.DeltaTime;
+        if (!(_startTimer >= 1)) return;
+
+        _startCount--;
+        _startTimer = 0;
+
+        switch (_startCount)
+        {
+            case -1:
+                Root.Remove(_countdownTimerText);
+                return;
+            case 0:
+                _countdownTimerText.Content = "GO!";
+                _game.Start();
+                audio.Gain = 0.3f;
+                audio.Play(resources.BgmX030, resources.LoopX030);
+                break;
+            case > 0:
+                _countdownTimerText.Content = _startCount.ToString();
+                break;
+        }
+
+        audio.PlayOneShot(resources.SfxCounts[Math.Clamp(_startCount, 0, 5)]);
+    }
+
+    private void UpdateScoreboard()
+    {
         _gameBoard.ScoreboardLeft["TIME"] = TimeString;
         _gameBoard.ScoreboardLeft["LEVEL"] = _level.ToString();
         _gameBoard.ScoreboardLeft["LINES"] = _lines.ToString();
@@ -92,6 +168,15 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _gameBoard.ScoreboardRight["PPS"] = Pps.ToString("F4");
         _gameBoard.ScoreboardRight["FALL SPEED"] = _game.Config.FallSpeed.ToString("F3");
         _gameBoard.ScoreboardRight["LINE TO NEXT"] = _exp.ToString();
+        _gameBoard.ScoreboardRight["Rotation"] = _game.Config.RotationSystem switch
+        {
+            QuadrixRotationSystem => "QRS",
+            StandardRotationSystem => "SRS",
+            ArcadeRotationSystem => "ARS",
+            ClassicRotationSystem => "CRS",
+            JoyjoyRotationSystem => "JRS",
+            _ => "Unknown"
+        };
     }
 
     public override void OnDestroy()

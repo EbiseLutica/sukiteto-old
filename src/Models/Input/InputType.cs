@@ -14,4 +14,5 @@ public enum InputType
     Ok,
     MenuUp,
     MenuDown,
+    Rotate180,
 }

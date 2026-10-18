@@ -33,6 +33,15 @@ public class Resources
     public IAudioSource SfxTspinRotate { get; } = new WaveAudioSource("./assets/sounds/tspin_rotate.wav");
     public IAudioSource SfxInitial { get; } = new WaveAudioSource("./assets/sounds/initial.wav");
 
+    public IAudioSource[] SfxCounts { get; } = [
+        new WaveAudioSource("./assets/sounds/count_go2.wav"),
+        new WaveAudioSource("./assets/sounds/count_1.wav"),
+        new WaveAudioSource("./assets/sounds/count_2.wav"),
+        new WaveAudioSource("./assets/sounds/count_3.wav"),
+        new WaveAudioSource("./assets/sounds/count_4.wav"),
+        new WaveAudioSource("./assets/sounds/count_5.wav"),
+    ];
+
     private IWindow _window;
 
     public Resources(IWindow window)

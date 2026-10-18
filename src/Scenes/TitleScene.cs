@@ -4,17 +4,20 @@ using Promete.Elements;
 using Promete.Graphics;
 using Promete.Windowing;
 
-namespace Sukiteto;
+namespace Quadrix;
 
 public class TitleScene(
     PrometeApp app,
     IWindow window,
     Resources resources,
     InputService input,
+    ConsoleLayer console,
     UIService ui) : Scene
 {
     private Text menu;
     private int index;
+    
+    private VectorInt cursor = (0, 0);
 
     public override void OnStart()
     {
@@ -28,6 +31,26 @@ public class TitleScene(
     public override void OnUpdate()
     {
         menu.Content = ui.Render();
+        
+        console.Clear();
+        console.Cursor = cursor;
+        
+        if (input[InputType.MenuUp].IsButtonDown)
+        {
+            cursor.Y--;
+        }
+        if (input[InputType.MenuDown].IsButtonDown)
+        {
+            cursor.Y++;
+        }
+        if (input[InputType.MoveLeft].IsButtonDown)
+        {
+            cursor.X--;
+        }
+        if (input[InputType.MoveRight].IsButtonDown)
+        {
+            cursor.X++;
+        }
     }
     
     private void InitializeUI()
@@ -64,7 +87,8 @@ public class TitleScene(
             new UIItemButton("40ライン（未実装）", () => { }),
             new UIItemButton("ミッション（未実装）", () => { }),
             new UIItemButton("DEATH OF G（Alpha）", app.LoadScene<DeathGameScene>),
-            new UIItemButton("AI (β)", app.LoadScene<AIGameScene>),
+            new UIItemButton("AI MODE (Alpha)", app.LoadScene<AIGameScene>),
+            new UIItemButton("Nostalgia 60", app.LoadScene<Nostalgia60GameScene>),
             new UIItemButton("←戻る", ShowMainMenu)
         ]);
     }

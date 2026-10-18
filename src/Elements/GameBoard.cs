@@ -83,7 +83,7 @@ public class GameBoard : ContainableElementBase
 
     protected override void OnUpdate()
     {
-        RenderCurrentBlock();
+        if (_game.IsPlaying) RenderCurrentBlock();
         RenderScoreBoard();
     }
 

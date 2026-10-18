@@ -4,14 +4,15 @@ namespace Quadrix;
 
 public class InputConfig
 {
-    public Dictionary<InputType, GamepadButtonType>[] Gamepads { get; set; } =
+    public Dictionary<InputType, GamepadButtonType>[] Gamepads { get; init; } =
     [
-        new Dictionary<InputType, GamepadButtonType>
+        new()
         {
             { InputType.MoveLeft, GamepadButtonType.DpadLeft },
             { InputType.MoveRight, GamepadButtonType.DpadRight },
             { InputType.RotateLeft, GamepadButtonType.B },
             { InputType.RotateRight, GamepadButtonType.A },
+            { InputType.Rotate180, GamepadButtonType.Y },
             { InputType.SoftDrop, GamepadButtonType.DpadDown },
             { InputType.HardDrop, GamepadButtonType.DpadUp },
             { InputType.Hold, GamepadButtonType.L1 },
@@ -21,21 +22,22 @@ public class InputConfig
             { InputType.MenuUp, GamepadButtonType.DpadUp },
             { InputType.MenuDown, GamepadButtonType.DpadDown },
         },
-        new Dictionary<InputType, GamepadButtonType>
+        new()
         {
             { InputType.Hold , GamepadButtonType.R1},
         },
-        new Dictionary<InputType, GamepadButtonType>(),
+        new(),
     ];
 
-    public Dictionary<InputType, KeyCode>[] Keys { get; set; } =
+    public Dictionary<InputType, KeyCode>[] Keys { get; init; } =
     [
-        new Dictionary<InputType, KeyCode>
+        new()
         {
             { InputType.MoveLeft, KeyCode.Left },
             { InputType.MoveRight, KeyCode.Right },
             { InputType.RotateLeft, KeyCode.Z },
             { InputType.RotateRight, KeyCode.X },
+            { InputType.Rotate180, KeyCode.A },
             { InputType.SoftDrop, KeyCode.Down },
             { InputType.HardDrop, KeyCode.Space },
             { InputType.Hold, KeyCode.C },
@@ -45,12 +47,12 @@ public class InputConfig
             { InputType.MenuUp, KeyCode.Up },
             { InputType.MenuDown, KeyCode.Down },
         },
-        new Dictionary<InputType, KeyCode>
+        new()
         {
             { InputType.RotateLeft, KeyCode.ControlLeft },
             { InputType.RotateRight, KeyCode.Up },
             { InputType.Hold, KeyCode.ShiftLeft },
         },
-        new Dictionary<InputType, KeyCode>(),
+        new(),
     ];
 }

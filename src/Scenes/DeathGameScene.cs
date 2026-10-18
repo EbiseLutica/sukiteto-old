@@ -30,7 +30,8 @@ public class DeathGameScene(AudioPlayer audio, Resources resources, InputService
     
     private readonly GameService _game = new(new GameConfig
     {
-        RotationSystem = new ArcadeRotationSystem(),
+        RotationSystem = new QuadrixRotationSystem(),
+        RandomGenerator = new SmartRandomGenerator(3),
         FallSpeed = float.MaxValue,
     });
 

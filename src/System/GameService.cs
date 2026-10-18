@@ -37,6 +37,8 @@ public class GameService
     public GameConfig Config { get; }
     
     public bool UsedHold { get; set; }
+    
+    public bool IsPlaying { get; private set; }
 
     /// <summary>
     /// 固定のタイマー
@@ -100,11 +102,12 @@ public class GameService
                 }
             }
         }
+        EnqueueNexts();
     }
 
     public void Start()
     {
-        EnqueueNexts();
+        IsPlaying = true;
         SpawnNextBlock();
     }
 
@@ -131,7 +134,7 @@ public class GameService
         
         return true;
     }
-    
+
     public bool TriggerDown()
     {
         if (!CanPlaceBlock(BlockPosition.X, BlockPosition.Y + 1, CurrentShape)) return false;
@@ -172,6 +175,20 @@ public class GameService
         ResetFix();
         isTspin = CheckTspin(kickValue);
 
+        return true;
+    }
+
+    public bool TriggerRotate180()
+    {
+        var nextRotation = BlockRotation + 2;
+        if (nextRotation > 3) nextRotation -= 4;
+        var kickValue = Config.RotationSystem.TryKick(this, CurrentBlockColor, BlockPosition, BlockRotation, nextRotation);
+        if (!kickValue.HasValue) return false;
+        BlockPosition += kickValue.Value;
+        BlockRotation = nextRotation;
+        ResetFix();
+        isTspin = CheckTspin(kickValue);
+        
         return true;
     }
     

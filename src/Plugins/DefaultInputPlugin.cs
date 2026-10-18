@@ -37,6 +37,10 @@ public class DefaultInputPlugin
         {
             _audio.PlayOneShot(_resources.SfxInitial);
         }
+        else if (_input[InputType.Rotate180] && _game.TriggerRotate180())
+        {
+            _audio.PlayOneShot(_resources.SfxInitial);
+        }
     }
 
     public void Process(float deltaTime)
@@ -110,6 +114,12 @@ public class DefaultInputPlugin
         
         // 右回転
         if (_input[InputType.RotateRight].IsButtonDown && _game.TriggerRotateRight())
+        {
+            _audio.PlayOneShot(_resources.SfxMove);
+        }
+        
+        // 180度回転
+        if (_input[InputType.Rotate180].IsButtonDown && _game.TriggerRotate180())
         {
             _audio.PlayOneShot(_resources.SfxMove);
         }
