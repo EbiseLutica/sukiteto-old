@@ -1,8 +1,9 @@
 ﻿using System.Drawing;
 using Promete;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
-using Promete.Windowing;
+using Promete.Graphics.Fonts;
+using Promete.Backends;
 
 namespace Quadrix;
 
@@ -18,11 +19,11 @@ public class EffectedText(
 
     private float timer;
     
-    private readonly IWindow window = PrometeApp.Current?.Window ?? throw new InvalidOperationException("Window is not initialized");
+    private readonly ITimeProvider _timeProvider = PrometeApp.Current.GetPlugin<ITimeProvider>();
 
     protected override void OnUpdate()
     {
-        var deltaTime = window.DeltaTime;
+        var deltaTime = _timeProvider.DeltaTime;
         timer += deltaTime;
         
         if (timer > EffectTime)
@@ -46,7 +47,7 @@ public class EffectedText(
         if (time > 0.5f)
         {
             var a = (int)(((1 - time) * 2) * 255);
-            var c = Color ?? System.Drawing.Color.White;
+            var c = Color;
             Color = System.Drawing.Color.FromArgb(a, c.R, c.G, c.B);
         }
     }

@@ -2,8 +2,9 @@ using System.Drawing;
 using System.Text;
 using Promete;
 using Promete.Audio;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
+using Promete.Graphics.Fonts;
 
 namespace Quadrix;
 
@@ -71,12 +72,12 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         _game.Config.FallSpeed = CalculateSpeed(_level);
 
         _gameBoard = new GameBoard(_game);
-        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
+        var mapLocation = View.Size / 2 - _gameBoard.Size / 2;
         _gameBoard.Location = mapLocation;
         Root.Add(_gameBoard);
 
         _countdownTimerText.Content = _startCount.ToString();
-        _countdownTimerText.Location = Window.Size / 2 - (64, 64);
+        _countdownTimerText.Location = View.Size / 2 - (64, 64);
         Root.Add(_countdownTimerText);
         audio.PlayOneShot(resources.SfxCounts[5]);
     }
@@ -126,14 +127,14 @@ public class GameScene(AudioPlayer audio, Resources resources, InputService inpu
         }
 
         if (_isPausingGame) return;
-        _inputPlugin.Process(Window.DeltaTime);
-        _time += Window.DeltaTime;
-        _game.Tick(Window.DeltaTime);
+        _inputPlugin.Process(Time.DeltaTime);
+        _time += Time.DeltaTime;
+        _game.Tick(Time.DeltaTime);
     }
 
     private void ProcessCountdown()
     {
-        _startTimer += Window.DeltaTime;
+        _startTimer += Time.DeltaTime;
         if (!(_startTimer >= 1)) return;
 
         _startCount--;

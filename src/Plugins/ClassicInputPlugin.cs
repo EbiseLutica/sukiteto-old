@@ -1,5 +1,4 @@
 ﻿using Promete.Audio;
-using Promete.Windowing;
 
 namespace Quadrix;
 

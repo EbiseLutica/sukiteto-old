@@ -15,11 +15,11 @@ public class ConfigScene : Scene
     {
         _ui = ui;
         _console = console;
-        _windowScaleIndex = (int)Math.Log2(Window.Scale);
     }
 
     public override void OnStart()
     {
+        _windowScaleIndex = (int)Math.Log2(View.Scale);
         ShowMainMenu();
     }
 
@@ -47,10 +47,9 @@ public class ConfigScene : Scene
             {
                 if (v is < 0 or > 3) return;
                 _windowScaleIndex = v;
-                Window.Scale = (int)Math.Pow(2, v);
-            }, () => $"{Window.Scale}x"),
-            new UIItemCheckbox("垂直同期（VSYNC）", () => Window.IsVsyncMode, v => Window.IsVsyncMode = v),
-            new UIItemSlider("目標フレームレート", () => Window.RefreshRate, v => Window.RefreshRate = v),
+                View.Scale = (int)Math.Pow(2, v);
+            }, () => $"{View.Scale}x"),
+            new UIItemSlider("目標フレームレート", () => Time.TargetFps, v => Time.TargetFps = v),
             new UIItemButton("←戻る", ShowMainMenu),
         ]);
     }

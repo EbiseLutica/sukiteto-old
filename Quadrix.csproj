@@ -2,12 +2,11 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>Quadrix</AssemblyName>
     <RootNamespace>Quadrix</RootNamespace>
-    <LangVersion>12</LangVersion>
     <Title>Quadrix</Title>
     <Authors>Ebise Lutica</Authors>
     <Description>A Stacker Game</Description>
@@ -17,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Promete" Version="0.13.3" />
+    <PackageReference Include="Promete" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>

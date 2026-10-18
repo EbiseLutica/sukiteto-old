@@ -1,6 +1,5 @@
 using Promete.Audio;
 using Promete.Graphics;
-using Promete.Windowing;
 
 namespace Quadrix;
 
@@ -42,13 +41,10 @@ public class Resources
         new WaveAudioSource("./assets/sounds/count_5.wav"),
     ];
 
-    private IWindow _window;
-
-    public Resources(IWindow window)
+    public Resources(TextureFactoryBase textureFactory)
     {
-        _window = window;
-        Logo = _window.TextureFactory.Load("./assets/textures/logo.png");
-        var minos = _window.TextureFactory.LoadSpriteSheet("./assets/textures/shapes.png", 9, 1, (16, 16));
+        Logo = textureFactory.Load("./assets/textures/logo.png");
+        var minos = textureFactory.LoadSpriteSheet("./assets/textures/shapes.png", 9, 1, (16, 16));
         Block = new Dictionary<BlockColor, Texture2D>
         {
             [BlockColor.O] = minos[0],

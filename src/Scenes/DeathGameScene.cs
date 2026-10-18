@@ -2,8 +2,9 @@ using System.Drawing;
 using System.Text;
 using Promete;
 using Promete.Audio;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
+using Promete.Graphics.Fonts;
 
 namespace Quadrix;
 
@@ -56,7 +57,7 @@ public class DeathGameScene(AudioPlayer audio, Resources resources, InputService
         _game.GameOver += OnGameOver;
 
         _gameBoard = new GameBoard(_game);
-        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
+        var mapLocation = View.Size / 2 - _gameBoard.Size / 2;
         _gameBoard.Location = mapLocation;
         Root.Add(_gameBoard);
 
@@ -83,10 +84,10 @@ public class DeathGameScene(AudioPlayer audio, Resources resources, InputService
         }
 
         if (_isPausingGame) return;
-        _inputPlugin.Process(Window.DeltaTime);
-        _time += Window.DeltaTime;
+        _inputPlugin.Process(Time.DeltaTime);
+        _time += Time.DeltaTime;
         ProcessInput();
-        _game.Tick(Window.DeltaTime);
+        _game.Tick(Time.DeltaTime);
         
         _gameBoard.ScoreboardLeft["TIME"] = TimeString;
         _gameBoard.ScoreboardLeft["LINES"] = _lines.ToString();

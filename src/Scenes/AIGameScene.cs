@@ -2,8 +2,9 @@ using System.Drawing;
 using System.Text;
 using Promete;
 using Promete.Audio;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
+using Promete.Graphics.Fonts;
 
 namespace Quadrix;
 
@@ -30,7 +31,7 @@ public class AIGameScene(AudioPlayer audio, Resources resources, InputService in
     public override void OnStart()
     {
         _gameBoard = new GameBoard(_game);
-        var mapLocation = Window.Size / 2 - _gameBoard.Size / 2;
+        var mapLocation = View.Size / 2 - _gameBoard.Size / 2;
         _gameBoard.Location = mapLocation;
         Root.Add(_gameBoard);
         
@@ -61,7 +62,7 @@ public class AIGameScene(AudioPlayer audio, Resources resources, InputService in
         }
         ProcessInput();
         ProcessAI();
-        _game.Tick(Window.DeltaTime);
+        _game.Tick(Time.DeltaTime);
     }
 
     public override void OnDestroy()
@@ -160,7 +161,7 @@ public class AIGameScene(AudioPlayer audio, Resources resources, InputService in
 
     private void ProcessAI()
     {
-        aiInputTimer += Window.DeltaTime;
+        aiInputTimer += Time.DeltaTime;
         if (aiInputTimer < aiInputDelay) return;
         aiInputTimer = 0;
 

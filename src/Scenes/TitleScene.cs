@@ -1,14 +1,13 @@
 ﻿using System.Drawing;
 using Promete;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
-using Promete.Windowing;
+using Promete.Graphics.Fonts;
 
 namespace Quadrix;
 
 public class TitleScene(
     PrometeApp app,
-    IWindow window,
     Resources resources,
     InputService input,
     ConsoleLayer console,
@@ -21,8 +20,8 @@ public class TitleScene(
 
     public override void OnStart()
     {
-        window.Title = "Quadrix";
-        window.Size = (640, 480);
+        View.Title = "Quadrix";
+        View.Size = (640, 480);
         App.BackgroundColor = Color.FromArgb(20, 20, 20);
 
         InitializeUI();
@@ -63,7 +62,7 @@ public class TitleScene(
             .Location(48, 192);
 
         var copyright = new Text($"(C)2023-2024 Ebise Lutica and GitHub contributors\nversion {Global.Version}", Font.GetDefault(14), Color.LightGray);
-        copyright.Location = (window.Width - copyright.Width - 2, window.Height - copyright.Height - 2);
+        copyright.Location = (View.Width - copyright.Width - 2, View.Height - copyright.Height - 2);
 
         Root.AddRange(logo, menu, copyright);
         

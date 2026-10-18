@@ -1,5 +1,4 @@
 ﻿using Promete;
-using Promete.Windowing;
 
 namespace Quadrix;
 
@@ -10,13 +9,13 @@ public class UIService
     private int _cursorIndex = 0;
     private readonly InputService _input;
 
-    public UIService(InputService input, IWindow window, PrometeApp app)
+    public UIService(InputService input, PrometeApp app)
     {
         _input = input;
-        window.Update += Tick;
-        window.Destroy -= Tick;
+        app.Update += Tick;
+        app.Destroy -= Tick;
         
-        app.SceneWillChange += () =>
+        app.SceneWillChange += _ =>
         {
             Show();
         };

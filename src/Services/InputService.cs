@@ -1,7 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Promete.Input;
-using Promete.Windowing;
+using Promete;
+using Promete.Backends;
 
 namespace Quadrix;
 
@@ -16,7 +17,7 @@ public class InputService
     
     public InputButton this[InputType type] => _inputButtons[type];
 
-    public InputService(Keyboard keyboard, Gamepads gamepads, IWindow window)
+    public InputService(Keyboard keyboard, Gamepads gamepads, PrometeApp app, ITimeProvider time)
     {
         _keyboard = keyboard;
         _gamepads = gamepads;
@@ -26,16 +27,16 @@ public class InputService
             _inputButtons[type] = new InputButton(type, _inputConfig);
         }
         
-        window.Update += () =>
+        app.Update += () =>
         {
             var pad = _gamepads[0];
             foreach (var button in _inputButtons.Values)
             {
-                button.Update(window.DeltaTime, pad, _keyboard);
+                button.Update(time.DeltaTime, pad, _keyboard);
             }
         };
 
-        window.Destroy += Save;
+        app.Destroy += Save;
     }
 
     private InputConfig LoadConfig()

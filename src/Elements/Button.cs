@@ -1,13 +1,14 @@
 ﻿using System.Collections.Specialized;
 using System.Drawing;
 using Promete;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
+using Promete.Graphics.Fonts;
 using Promete.Input;
 
 namespace Quadrix;
 
-public class Button : ContainableElementBase
+public class Button : ContainableNode
 {
     public string Content { get; set; }
    
@@ -34,8 +35,8 @@ public class Button : ContainableElementBase
 
         if (textureNormal == null || textureActive == null)
         {
-            textureNormal = app.Window.TextureFactory.Load9Sliced("./assets/textures/ui_button.png", 5, 9, 5, 5);
-            textureActive = app.Window.TextureFactory.Load9Sliced("./assets/textures/ui_button_active.png", 5, 9, 5, 5);
+            textureNormal = app.TextureFactory.Load9Sliced("./assets/textures/ui_button.png", 5, 9, 5, 5);
+            textureActive = app.TextureFactory.Load9Sliced("./assets/textures/ui_button_active.png", 5, 9, 5, 5);
         }
 
         backdrop = new NineSliceSprite(textureNormal.Value, BackgroundColor)
@@ -44,8 +45,8 @@ public class Button : ContainableElementBase
         text = new Text(Content, Font.GetDefault(16), TextColor);
         text.Location = (base.Size / 2 - text.Size / 2);
         
-        children.Add(backdrop);
-        children.Add(text);
+        Add(backdrop);
+        Add(text);
         // isTrimmable = true;
     }
 

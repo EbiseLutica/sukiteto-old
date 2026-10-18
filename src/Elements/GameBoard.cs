@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Drawing;
 using Promete;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
-using Promete.Windowing;
+using Promete.Graphics.Fonts;
 
 namespace Quadrix;
 
-public class GameBoard : ContainableElementBase
+public class GameBoard : ContainableNode
 {
     private const int FieldBlockBrightness = 160;
     private readonly GameService _game;
@@ -23,8 +23,6 @@ public class GameBoard : ContainableElementBase
 
     private readonly Text _scoreboardLeftText = new Text("");
     private readonly Text _scoreboardRightText = new Text("");
-    
-    private readonly GlyphRenderer glyphRenderer = PrometeApp.Current?.GetPlugin<GlyphRenderer>() ?? throw new InvalidOperationException("Promete is not initialized");
 
     public GameBoard(GameService game)
     {
@@ -59,17 +57,17 @@ public class GameBoard : ContainableElementBase
         RenderWalls();
         RenderField();
         
-        children.Add(_holdView);
-        children.Add(_fieldMap);
-        children.Add(_currentBlockMap);
-        children.Add(_scoreboardLeftText);
-        children.Add(_scoreboardRightText);
+        Add(_holdView);
+        Add(_fieldMap);
+        Add(_currentBlockMap);
+        Add(_scoreboardLeftText);
+        Add(_scoreboardRightText);
         foreach (var blockView in _nextViews)
         {
-            children.Add(blockView);
+            Add(blockView);
         }
-        children.Add(holdText);
-        children.Add(nextText);
+        Add(holdText);
+        Add(nextText);
 
         _game.BlockPlace += OnBlockPlace;
         _game.Hold += OnHold;
@@ -199,9 +197,9 @@ public class GameBoard : ContainableElementBase
     private void RenderScoreBoard()
     {
         var leftScore = string.Join("\n\n", ScoreboardLeft.Select(kv => $"{kv.Key}\n{kv.Value}"));
-        var bb = glyphRenderer.GetTextBounds(leftScore, _scoreboardLeftText.Font);
+        var bb = TextLayoutEngine.Measure(leftScore, _scoreboardLeftText.Font, _scoreboardLeftText.Options);
         _scoreboardLeftText.Content = leftScore;
-        _scoreboardLeftText.Location = (11 * 8 - 32 - bb.Width, _scoreboardLeftText.Location.Y);
+        _scoreboardLeftText.Location = (11 * 8 - 32 - bb.X, _scoreboardLeftText.Location.Y);
         _scoreboardRightText.Content = string.Join("\n\n", ScoreboardRight.Select(kv => $"{kv.Key}\n{kv.Value}"));
     }
 }

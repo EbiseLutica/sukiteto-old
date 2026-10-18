@@ -16,15 +16,15 @@ public class Nostalgia60GameScene(ConsoleLayer console, InputService input, Audi
     
     public override void OnUpdate()
     {
-        Window.Title = $"Nostalgia60 - {Window.FramePerSeconds}fps";
+        View.Title = $"Nostalgia60 - {Time.FramePerSeconds}fps";
         if (input[InputType.Quit])
         {
             App.LoadScene<TitleScene>();
         }
 
         Render();
-        _inputPlugin.Process(Window.DeltaTime);
-        _game.Tick(Window.DeltaTime);
+        _inputPlugin.Process(Time.DeltaTime);
+        _game.Tick(Time.DeltaTime);
     }
 
     private void Render()

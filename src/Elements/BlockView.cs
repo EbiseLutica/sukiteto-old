@@ -1,10 +1,10 @@
 ﻿using Promete;
-using Promete.Elements;
+using Promete.Nodes;
 using Promete.Graphics;
 
 namespace Quadrix;
 
-public class BlockView : ContainableElementBase
+public class BlockView : ContainableNode
 {
     public BlockColor BlockType
     {
@@ -27,7 +27,7 @@ public class BlockView : ContainableElementBase
         _shapes = shapes;
         _blockTiles = PrometeApp.Current?.GetPlugin<Resources>()?.BlockTiles ?? throw new InvalidOperationException("Promete is not initialized");
         
-        children.Add(_tilemap);
+        Add(_tilemap);
     }
 
     private void RenderBlock()
