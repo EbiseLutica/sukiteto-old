@@ -9,6 +9,9 @@ public class UIService
     private int _cursorIndex = 0;
     private readonly InputService _input;
 
+    // Show 直後のフレームでは、表示のきっかけになった入力を拾わないよう操作を受け付けない
+    private bool _skipNextTick;
+
     public UIService(InputService input, PrometeApp app)
     {
         _input = input;
@@ -26,6 +29,7 @@ public class UIService
         _items.Clear();
         _items.AddRange(items);
         _cursorIndex = 0;
+        _skipNextTick = true;
         items.FirstOrDefault()?.OnCursorEnter();
     }
     
@@ -36,6 +40,11 @@ public class UIService
 
     private void Tick()
     {
+        if (_skipNextTick)
+        {
+            _skipNextTick = false;
+            return;
+        }
         if (_items.Count == 0) return;
         if (_input[InputType.MenuUp].IsButtonDown)
         {
