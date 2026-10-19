@@ -17,6 +17,16 @@ public class InputService
     
     public InputButton this[InputType type] => _inputButtons[type];
 
+    /// <summary>
+    /// 1 つの操作に割り当てられるキーのスロット数
+    /// </summary>
+    public const int KeySlotCount = 3;
+
+    /// <summary>
+    /// 現在の入力設定。変更は即座に入力判定へ反映される。
+    /// </summary>
+    public InputConfig Config => _inputConfig;
+
     public InputService(Keyboard keyboard, Gamepads gamepads, PrometeApp app, ITimeProvider time)
     {
         _keyboard = keyboard;
@@ -44,7 +54,18 @@ public class InputService
         if (!File.Exists(jsonFilePath)) return new InputConfig();
 
         var json = File.ReadAllText(jsonFilePath);
-        return JsonSerializer.Deserialize<InputConfig>(json) ?? new InputConfig();
+        var config = JsonSerializer.Deserialize<InputConfig>(json) ?? new InputConfig();
+        if (config.Keys.Length >= KeySlotCount && config.Gamepads.Length >= KeySlotCount) return config;
+
+        // スロット数が足りない古い設定ファイルは空のスロットで補う
+        return new InputConfig
+        {
+            Gamepads = PadSlots(config.Gamepads),
+            Keys = PadSlots(config.Keys),
+        };
+
+        static Dictionary<InputType, T>[] PadSlots<T>(Dictionary<InputType, T>[] slots) =>
+            [..slots, ..Enumerable.Range(0, Math.Max(0, KeySlotCount - slots.Length)).Select(_ => new Dictionary<InputType, T>())];
     }
     
     public void Save()
